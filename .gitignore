@@ -1,0 +1,11 @@
+# Compiled object files
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Backup files and editor temporary files
+*~
+*.swp
+*.bak

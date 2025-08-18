@@ -1,0 +1,149 @@
+{
+    "path": "/home/panagiotis/Desktop/Testfile/CRs/",
+
+	"ZZ": {
+
+		"filename": "zz_cr_histos_", 
+
+		"histo_name": "ZZCR",
+
+		"region": "#bf{ZZ Drell-Yan CR}",
+
+		"par_guess" : 1.7,
+
+		"par_step" : 0.1,
+		
+		"par_min": 0.6,
+		
+		"par_max": 1.8,
+
+		"par_name": "mu_ZZ",
+
+		"likelihood_ratio_xmin": 1.05,
+
+		"likelihood_ratio_xmax": 1.145,
+
+		"line_xmin": 1.0417,
+
+		"line_xmax": 1.157,
+
+		"sigma_x": 1.05,
+
+		"fit_ratio_x1": 1.05,
+
+		"fit_ratio_x2": 1.15,
+
+		"mu_min": 0.95,
+
+		"mu_max": 1.2,
+
+		"ratio_logo_x": 1.075,
+
+		"stack_logo_x" : 500,
+		
+
+		"mwz": {
+
+			"stack_upper_lim": 1e4,
+		    "stack_lower_lim": 1e-1,
+		    "atlas_logo_y3": 6e2,
+		    "atlas_logo_y2": 2e3,
+		    "atlas_logo_y1": 8e3
+		},
+		
+
+		"sum3pt":{
+
+			"stack_upper_lim": 1e4,
+			"stack_lower_lim": 3e-2,
+			"atlas_logo_y3": 6e2,
+		    "atlas_logo_y2": 2e3,
+		    "atlas_logo_y1": 8e3
+		},
+
+
+		"mtwz":{
+			
+			"stack_upper_lim": 1e3,
+			"stack_lower_lim": 1e-1,
+			"atlas_logo_y3": 1e2,
+		    "atlas_logo_y2": 3e2,
+		    "atlas_logo_y1": 8e2
+
+		}
+
+
+	},
+
+	"WZ_qcd":{
+
+		"filename": "wzqcd_cr_histos_",
+
+		"histo_name": "WZqcd_CR",
+
+		"region": "#bf{WZ-QCD Drell-Yan CR}",
+
+		"par_guess" : 0.85,
+		
+		"par_step" : 0.1,
+		
+		"par_min": 0.75,
+		
+		"par_max": 1.195,
+		
+		"par_name": "mu_WZQCD",
+
+		"likelihood_ratio_xmin": 0.93,
+
+		"likelihood_ratio_xmax": 0.98,
+
+		"line_xmin": 0.93,
+
+		"line_xmax": 0.983,
+
+		"sigma_x": 0.932,
+
+		"fit_ratio_x1": 0.93,
+
+		"fit_ratio_x2": 0.98,
+
+		"mu_min": 0.6,
+
+		"mu_max": 1.3,
+
+		"ratio_logo_x": 0.945,
+
+		"stack_logo_x" : 600,
+
+		"mwz": {
+
+			"stack_upper_lim": 1e4,
+		    "stack_lower_lim": 2,
+		    "atlas_logo_y3": 1e3,
+		    "atlas_logo_y2": 3e3,
+		    "atlas_logo_y1": 8e3
+		},
+		
+
+		"sum3pt":{
+
+			"stack_upper_lim": 1e4,
+			"stack_lower_lim": 3,
+			"atlas_logo_y3": 1e3,
+		    "atlas_logo_y2": 3e3,
+		    "atlas_logo_y1": 8e3
+		},
+
+
+		"mtwz":{
+			
+			"stack_upper_lim": 1e4,
+			"stack_lower_lim": 3,
+			"atlas_logo_y3": 1e3,
+		    "atlas_logo_y2": 3e3,
+		    "atlas_logo_y1": 8e3
+
+		}
+
+	}
+}
