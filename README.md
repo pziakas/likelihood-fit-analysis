@@ -22,12 +22,12 @@ This project demonstrates advanced parameter estimation techniques using Maximum
 
 ## Usage 
 
-To run the project, the user needs to have the folowing installed:
+To run the project, the user needs to have the following installed:
 
 - [ROOT](https://root.cern/)
 - [JSON for Modern C++](https://github.com/nlohmann/json)
 
-Then using the Makefile provided in this project, the user can run the project using the following commands:
+Make sure to configure the path in the JSON file, according you system. Then using the Makefile provided in this project, the user can run the project using the following commands:
 
 ```bash 
 
@@ -36,7 +36,7 @@ make
 ./likelihood_fit 
 ```
 
-The user will need to follow the ineractive promts to select a variable as input and select a region in which the fit will be performed. 
+The user will need to follow the ineractive prompts to select a variable as input and select a region in which the fit will be performed. 
 
 ## Further Reading
 
