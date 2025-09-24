@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	in_file >> input;
 
 	// --- Opening the file to get the histograms ---
+	// --- Remember to put your own path in the JSON file ---
 
 	TString filename(input[region]["filename"].get<std::string>());
 	TString path(input["path"].get<std::string>());
@@ -88,12 +89,6 @@ int main(int argc, char **argv)
 	// --- After that the remaining histograms are backgrounds ---
 
 	find_signal_hist(histos);
-
-
-	// --- Defining the stack ---
-
-	THStack *stack = new THStack("stack",";; Counts");
-
 
 	// --- Defining useful maps and vectors for the stack and the legend ---
 
@@ -223,3 +218,19 @@ int main(int argc, char **argv)
 	return 0;
 
 }
+
+/*
+	Some comments will go here
+
+	If you want to start implementing the same project in a class you will need
+
+	vector of histograms
+	vector of histograms names
+	vector of color fill
+	vector of label fills
+
+	two new functions to get all of those vectors from the json file
+
+	you can put the THStack in the function that it is defined
+	check if you can do that for the minimizer too
+*/

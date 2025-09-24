@@ -163,7 +163,7 @@ void style_hists(TH1F *&h, int fill_color)
 }
 
 //************************************************************************
-void draw_ratio_plot(const TString &var, TCanvas *c, const std::vector <TH1F*> &hists, THStack *&s, TH1F *h_data,const std::vector <TH1F*> &hists_leg, const std::map <TH1F*,std::vector<TString>> &leg_map,std::string region, const json &input)
+void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> &hists, TH1F *&h_data,const std::vector <TH1F*> &hists_leg, const std::map <TH1F*,std::vector<TString>> &leg_map,std::string region, const json &input)
 //************************************************************************
 {
 	int size = hists.size();
@@ -171,6 +171,10 @@ void draw_ratio_plot(const TString &var, TCanvas *c, const std::vector <TH1F*> &
     // --- Converting the TStirng var into a string object ---
 
     std::string string_var(var.Data());
+
+    // --- Defining the stack ---
+
+     THStack *s = new THStack("stack",";; Counts");
 	
 	// --- Getting the stack limits from the json file ---
 
@@ -731,7 +735,7 @@ void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio)
 // --- This function is asking the user if they want to print the canvas in a pdf form ---
 
 //************************************************************************
-void print_canvas(TCanvas *c, TString image_name)
+void print_canvas(TCanvas *&c, TString image_name)
 //************************************************************************
 {
     std::string ans;
