@@ -218,19 +218,3 @@ int main(int argc, char **argv)
 	return 0;
 
 }
-
-/*
-	Some comments will go here
-
-	If you want to start implementing the same project in a class you will need
-
-	vector of histograms
-	vector of histograms names
-	vector of color fill
-	vector of label fills
-
-	two new functions to get all of those vectors from the json file
-
-	you can put the THStack in the function that it is defined
-	check if you can do that for the minimizer too
-*/
