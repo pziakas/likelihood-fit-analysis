@@ -1,11 +1,11 @@
 {
-    "path": "/home/panagiotis/Desktop/Testfile/CRs/",
+    "path": "/pbs/home/p/pziakas/Project_new/",
 
 	"ZZ": {
 
 		"filename": "zz_cr_histos_", 
 
-		"histo_name": "ZZCR",
+		"histo_label": "ZZCR",
 
 		"region": "#bf{ZZ Drell-Yan CR}",
 
@@ -70,7 +70,13 @@
 		    "atlas_logo_y2": 3e2,
 		    "atlas_logo_y1": 8e2
 
-		}
+		},
+
+		"histo_names": ["data_","WZ_ew_total_","Fakes_","WZ_qcd_364253_","ttbarV+VVV_total_","ZZ_total_"],
+
+		"fill_colors": [0,391,629,40,609,407],
+
+		"leg_names": ["#bf{Data}","#bf{WZ_{EW}}","#bf{Fake/Non prompt}","#bf{WZ_{QCD}}","#bf{t#bar{t}V+VVV}","#bf{ZZ}"]
 
 
 	},
@@ -79,7 +85,7 @@
 
 		"filename": "wzqcd_cr_histos_",
 
-		"histo_name": "WZqcd_CR",
+		"histo_label": "WZqcd_CR",
 
 		"region": "#bf{WZ-QCD Drell-Yan CR}",
 
@@ -143,7 +149,13 @@
 		    "atlas_logo_y2": 3e3,
 		    "atlas_logo_y1": 8e3
 
-		}
+		},
+
+		"histo_names": ["data_","WZ_ew_total_","ttbarV+VVV_total_","ZZ_total_","Fakes_","WZ_qcd_364253_"],
+
+		"fill_colors": [0,391,609,407,629,40],
+
+		"leg_names": ["#bf{Data}","#bf{WZ_{EW}}","#bf{t#bar{t}V+VVV}","#bf{ZZ}","#bf{Fake/Non prompt}","#bf{WZ_{QCD}}"]
 
 	}
 }

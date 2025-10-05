@@ -13,6 +13,7 @@
 #include <fstream>
 #include "json.hpp"
 #include <tuple>
+#include <memory>
 
 // --- ROOT includes ---
 
@@ -39,53 +40,80 @@
 
 using json = nlohmann::json;
 
-// --- Histograms ---
+class LikelihoodFit
+{
+    // --- Defining some usefull vectors as members of the class ---
 
-extern TH1F *h_data;
-extern TH1F *h_ZZ;
-extern TH1F *h_WZ_qcd;
-extern TH1F *h_WZ_ew;
-extern TH1F *h_fakes;
-extern TH1F *h_ttbarV_VVV;
-extern TH1F *h_signal;
+    std::vector <TH1F*> histos;
+    std::vector <TString> histo_names;
+    std::vector <TString> leg_names;
+    std::vector <int> fill_color;
 
+    // --- Some usefull TStrings ---
 
-// --- Region ---
+    TString var;
+    TString region;
 
-extern std::string region;
+    // --- File to be opened ---
 
-// --- Flags ---
+    TFile *file;
 
-extern int fit_flag;
+    // --- Defining some usefull integers ---
 
-// --- Global vectors  ---
+    int fit_flag;
+    int npar;
 
-extern std::vector <double> best_fit;
-extern std::vector <TH1F*> histos;
+    // --- Defining some helpful vectors for the parameters of the fit ---
 
+    std::vector<double> par;
+    std::vector<double> stepSize;
+    std::vector<double> minVal;
+    std::vector<double> maxVal;
+    std::vector<std::string> parName;
+    std::vector<double> best_fit;
 
-// --- Functions ---
+    // --- Static instance member ---
 
-void draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax);
-void draw_logo(double xmin, double xmax1, double xmax2, double xmax3,std::string region, const json &input);
-void draw_legend(const std::vector <TH1F*> &hists, const std::map <TH1F*,std::vector<TString>> &leg_map);
-void var_choice(TString &var);
-void get_hists(const TString &name, TH1F *&h, TFile *file, int fill_color);
-void style_hists(TH1F *&h, int fill_color);
-void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> &hists, TH1F *&h_data,const std::vector <TH1F*> &hists_leg, const std::map <TH1F*,std::vector<TString>> &leg_map,std::string region, const json &input);
-double log_likelihood(TH1F *h_bkg1, TH1F *h_bkg2, TH1F *h_bkg3, TH1F *h_bkg4, TH1F *h_signal, TH1F *h_data, int bin, const double *par, int flag);
-void fcn(int &npar, double *deriv, double &f, double *par, TH1F *h_bkg1, TH1F *h_bkg2, TH1F *h_bkg3, TH1F *h_bkg4, TH1F *h_signal, TH1F *h_data, int bin, int flag);
-std::vector<double> get_best_fit_values(TMinuit *&minimizer,const int npar, const std::vector <double> &par, const std::vector <double> &stepSize, const std::vector <double> &minVal,const std::vector <double> &maxVal, const std::vector <std::string> &parName);
-TGraph* get_likelihood_ratio_plot(TMinuit *&minimizer);
-void draw_sigma(double x, double y);
-void style_ratios(TGraph *plot, int color, std::string region, const json &input);
-TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, double maxm, const int npars, std::vector <double> &par, const std::vector <double> &stepSize, const std::vector <double> &minVal,const std::vector <double> &maxVal, const std::vector <std::string> &parName);
-std::tuple<double,double,double> quadratic_fit(TGraph *plot, std::string region, const json &input);
-void draw_ratios(TGraph *ratio, TGraph *profile_ratio, TCanvas *canvas, const TString &var, std::string region, const json &input);
-void print_canvas(TCanvas *&c, TString image);
-void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio);
-void region_choice(std::string &region);
-void find_signal_hist(std::vector<TH1F*> &histos);
+    static LikelihoodFit* instance;
+    
+    public:
+
+    LikelihoodFit();
+    ~LikelihoodFit();
+    void FileOpen(const json &input);
+    void SetRegion();
+    TString GetRegion();
+    void SetVar();
+    void GetHistos(const json &input);
+    void StyleHistos();
+    void CheckHistos();
+    void draw_logo(double xmin, double xmax1, double xmax2, double xmax3, const json &input);
+    void draw_legend();
+    void draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax);
+    void draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &input);
+    void GetVectors(const json &input);
+    std::vector <int> vecs_from_json_int(const json &input, const std::string &name);
+    std::vector <TString> vecs_from_json_string(const json &input, const std::string &name);
+    void print_image(std::unique_ptr<TCanvas> &c, const TString &mode);
+    void SetFitFlag(const int &fit_flag);
+    double log_likelihood(int bin, double param[], int flag);
+    void LoadParameters(const json &input);
+    static void fcn(int &npar, double *deriv, double &f, double *param, int flag);
+    std::vector<double> get_best_fit_values(TMinuit *minimizer);
+    void SetNpar(int npar);
+    int GetNpar();
+    static void SetInstance(LikelihoodFit &fit);
+    TGraph* get_likelihood_ratio_plot(LikelihoodFit &fit);
+    void AddToParameters(double par1, double par2, double par3, double par4, std::string par5);
+    TGraph* get_profile_likelihood_ratio_plot(const json &input);
+    TMinuit* SetBestFitValues();
+    void style_ratios(TGraph *plot, int color, const json &input);
+    void draw_sigma(double x, double y);
+    std::tuple<double,double,double> quadratic_fit(TGraph *plot, const json &input);
+    void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio);
+    void draw_ratios(TGraph *ratio, TGraph *profile_ratio,std::unique_ptr<TCanvas> &c, const json &input);
+
+};
 
 
 

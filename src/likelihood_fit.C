@@ -6,16 +6,17 @@
 #include <map>
 #include <cmath>
 #include <functional>
-#include <tuple>
 #include <fstream>
 #include "json.hpp"
+#include <tuple>
+#include <memory>
 #include "likelihood_fit.h"
 
 // --- ROOT includes ---
 
 #include "TH1.h"
-#include "TF1.h"
 #include "TFile.h"
+#include "TF1.h"
 #include "TString.h"
 #include "TLegend.h"
 #include "TMinuit.h"
@@ -32,62 +33,214 @@
 #include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
 #include "TGraph.h"
+#include "TCanvasImp.h"
 
 using json = nlohmann::json;
 
+// ########################
+// #                      #
+// # Function definitions #
+// #                      #
+// ########################
 
-// --- Declaring histogramms ---
+// --- Static pointer of the class ---
 
-TH1F *h_data;
-TH1F *h_ZZ;
-TH1F *h_WZ_qcd;
-TH1F *h_WZ_ew;
-TH1F *h_fakes;
-TH1F *h_ttbarV_VVV;
-TH1F *h_signal;
+LikelihoodFit* LikelihoodFit::instance = nullptr;
 
-// --- Declaring region ---
-
-std::string region;
-
-// --- Declarinng the flag ---
-
-int fit_flag;
-
-// --- Declaring the vectors ----
-
-std::vector <double> best_fit;
-std::vector <TH1F*> histos;
-
-
-// --- Declaring used functions ---
-
-
-// --- This function plots the line of the ratio plot ---
+// --- Setter to set the instance ---
 
 //************************************************************************
-void draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax)
+void LikelihoodFit::SetInstance(LikelihoodFit &fit)
 //************************************************************************
 {
-	
-	TLine *l = new TLine(xmin,ymin,xmax,ymax);
-    l->SetLineColor(color);
-	l->SetLineWidth(line_width);
-    l->SetLineStyle(9);
-    l->Draw("same");
+    instance = &fit;
+}
+
+// --- LikelihoodFit Constructor ---
+
+//************************************************************************
+LikelihoodFit::LikelihoodFit()
+//************************************************************************
+{
+    std::cout << "You have created a LikelihoodFit object!" << std::endl << std::endl;
+}
+
+// --- LikelihoodFit Destructor ---
+
+//************************************************************************
+LikelihoodFit::~LikelihoodFit()
+//************************************************************************
+{
+    for(auto &histo : histos)
+    {
+        delete histo;
+    }
+    
+    histos.clear();
+
+    file->Close();
+    delete file;
+
+    std::cout << "You have deleted a LikelihoodFit object" << std::endl;
+}
+
+// --- This function is opening the file and checks if it has opened successfully ---
+
+//************************************************************************
+void LikelihoodFit::FileOpen(const json &input)
+//************************************************************************
+{
+    TString filename(input[region]["filename"].get<std::string>());
+	TString path(input["path"].get<std::string>());
+    
+    file = TFile::Open(path + filename + var + ".root","read");
+
+    if(!file)
+    {
+        std::cout << std::endl << "Could not open the file! Exiting..." << std::endl;
+        std::exit(1);
+    }
+
+    std::cout << std::endl << "File " << file->GetName() << " opened successfully!" << std::endl;
+}
+
+// --- This is a function to set the region ---
+
+//************************************************************************
+void LikelihoodFit::SetRegion()
+//************************************************************************
+{
+    TString region;
+
+    std::cout << "Enter the region you want to plot: ";
+    std::cin >> region;
+
+    while(region != "ZZ" && region != "WZ_qcd")
+    {
+        std::cout << "Not valid region!" << std::endl;
+        std::cout << "You can choose between: ZZ and WZ_qcd!" << std::endl;
+        std::cout << "Enter the region you want to plot: ";
+        std::cin >> region;
+    }
+
+    this->region = region;
+}
+
+// --- This is a getter function for the region ---
+
+//************************************************************************
+TString LikelihoodFit::GetRegion()
+//************************************************************************
+{
+    return region;
+}
+
+// --- This is a function to set the variable to be plotted ---
+
+//************************************************************************
+void LikelihoodFit::SetVar()
+//************************************************************************
+{
+    TString var;
+
+    std::cout << "Enter the variable you want to plot: ";
+    std::cin >> var;
+
+    while(var != "mwz" && var != "sum3pt" && var != "mtwz")
+	{
+		std::cout << "Not valid variable!" << std::endl;
+        std::cout << "You can choose between: mwz, sum3pt or mtwz!" << std::endl;
+		std::cout << "Enter the variable you want to plot: ";
+		std::cin >> var;
+	}
+
+   this->var = var;
+}
+
+// --- This is a function that gets all the histograms --
+
+//************************************************************************
+void LikelihoodFit::GetHistos(const json &input)
+//************************************************************************
+{
+    TString histo_label(input[region]["histo_label"].get<std::string>());
+    
+    for(auto &histo_name : histo_names)
+    {
+        TString name = histo_name + histo_label;
+        
+        // --- Getting the histogram from the file ---
+        
+        TH1F *histo = dynamic_cast<TH1F*>(file->Get(name));
+
+        // --- Setting the name of the histogram ---
+        
+        histo->SetName(histo_name);
+
+        // --- Filling the histogram vector ---
+        
+        histos.push_back(histo);
+    }
+}
+
+// --- This function styles the histograms ---
+
+//************************************************************************
+void LikelihoodFit::StyleHistos()
+//************************************************************************
+{
+    // --- Looping over all the histograms ---
+    
+    for(int i = 0; i < histos.size(); i++)
+    {
+        TString name = histos.at(i)->GetName();
+
+        // --- Styling the data histogram ---
+
+        if(name.Contains("data"))
+        {
+            histos.at(i)->SetMarkerStyle(20);
+            histos.at(i)->SetMarkerColor(kBlack);
+            histos.at(i)->SetLineColor(kBlack);
+        }
+
+        // --- All the predefined vectors have the same size ---
+
+        histos.at(i)->SetFillColor(fill_color.at(i));
+     
+    }
+
+}
+
+// --- This function checks if the histograms have been correctly taken from the file ---
+
+//************************************************************************
+void LikelihoodFit::CheckHistos()
+//************************************************************************
+{
+    for(const auto &histo : histos)
+    {
+        if(!histo)
+        {
+            std::cout << std::endl << "Histogram could not be successfully opened! Exiting..." << std::endl;
+            std::exit(1);
+        }
+
+        std::cout << std::endl << "Histogram " << histo->GetName() << " opened successfully!" << std::endl;
+    }
 }
 
 // --- This function draws the ATLAS logo ---
 
 //************************************************************************
-void draw_logo(double xmin, double xmax1, double xmax2, double xmax3, std::string region, const json &input)
+void LikelihoodFit::draw_logo(double x, double y1, double y2, double y3, const json &input)
 //************************************************************************
 {
     TString region_logo(input[region]["region"].get<std::string>());
     
-    TLatex *t = new TLatex(xmin,xmax1,"#it{ATLAS} #bf{work in progress}");
-    TLatex *t1=new TLatex(xmin,xmax2,"#bf{#sqrt{s}=13 TeV, #intLdt = 139 fb^{-1}}");
-    TLatex *t2=new TLatex(xmin,xmax3,region_logo);
+    TLatex *t = new TLatex(x,y1,"#it{ATLAS} #bf{work in progress}");
+    TLatex *t1=new TLatex(x,y2,"#bf{#sqrt{s}=13 TeV, #intLdt = 139 fb^{-1}}");
+    TLatex *t2=new TLatex(x,y3,region_logo);
     
     t->SetTextSize(0.04);
     t1->SetTextSize(0.035);
@@ -98,93 +251,60 @@ void draw_logo(double xmin, double xmax1, double xmax2, double xmax3, std::strin
     t2->Draw();
 }
 
-
-// --- This function draws the legend of the plot ---
-
+// --- This function draws the legend for the stack ---
 
 //************************************************************************
-void draw_legend(const std::vector <TH1F*> &hists, const std::map <TH1F*,std::vector<TString>> &leg_map)
+void LikelihoodFit::draw_legend()
 //************************************************************************
 {
 	TLegend *leg = new TLegend(0.6,0.55,0.85,0.85); 
-	for(const auto &hist : hists) leg->AddEntry(hist,leg_map.at(hist).at(0),leg_map.at(hist).at(1));
+	
+    // --- The two vectors have the same size ---   
+
+    for(int i = 0; i < histos.size(); i++)
+    {
+        if(leg_names.at(i).Contains("Data")) leg->AddEntry(histos.at(i),leg_names.at(i),"ep");
+        else leg->AddEntry(histos.at(i),leg_names.at(i),"f");
+    }
+
 	leg->SetBorderSize(0);
 	leg->Draw();
 }
 
-// --- This function ensures that the variable the user provides is valid ---
+// --- This function plots the line of the ratio plot ---
 
 //************************************************************************
-void var_choice(TString &var)
-//************************************************************************
-{
-	std::cout << std::endl << "Enter the variable you want to plot: ";
-	std::cin >> var;
-
-	while(var != "mwz" && var != "sum3pt" && var != "mtwz")
-	{
-		std::cout << "Not valid variable!" << std::endl;
-        std::cout << "You can choose between: mwz, sum3pt or mtwz!" << std::endl;
-		std::cout << "Enter the variable you want to plot: ";
-		std::cin >> var;
-	}
-}
-
-
-// --- This function gets the histogram from the file ---
-
-//************************************************************************
-void get_hists(const TString &name, TH1F *&h, TFile *file, int fill_color)
+void LikelihoodFit::draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax)
 //************************************************************************
 {
-	h = dynamic_cast<TH1F*>(file->Get(name));
- 
-    if(h == nullptr) std::cout << "Something is wrong" << std::endl;
-
-	style_hists(h,fill_color);
-}
-
-// --- This function styles the histograms ---
-
-//************************************************************************
-void style_hists(TH1F *&h, int fill_color)
-//************************************************************************
-{
-    TString name = h->GetName();
 	
-    if(name.Contains("data"))
-	{
-		h->SetMarkerStyle(20);
-		h->SetMarkerColor(kBlack);
-		h->SetLineColor(kBlack);
-	}
-
-	else h->SetFillColor(fill_color);
+	TLine *l = new TLine(xmin,ymin,xmax,ymax);
+    l->SetLineColor(color);
+	l->SetLineWidth(line_width);
+    l->SetLineStyle(9);
+    l->Draw("same");
 }
 
+// --- This function will draw the ratio plot ---
+
 //************************************************************************
-void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> &hists, TH1F *&h_data,const std::vector <TH1F*> &hists_leg, const std::map <TH1F*,std::vector<TString>> &leg_map,std::string region, const json &input)
+void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
-	int size = hists.size();
-
-    // --- Converting the TStirng var into a string object ---
-
-    std::string string_var(var.Data());
-
     // --- Defining the stack ---
 
      THStack *s = new THStack("stack",";; Counts");
 	
 	// --- Getting the stack limits from the json file ---
 
-	double stack_max = input[region][string_var]["stack_upper_lim"].get<double>();
-    double stack_min = input[region][string_var]["stack_lower_lim"].get<double>();
+	double stack_max = input[region][var]["stack_upper_lim"].get<double>();
+    double stack_min = input[region][var]["stack_lower_lim"].get<double>();
 
 
 	// --- Filling the stack ---
+    // --- First histogram is data histosgram, will be plotted later ---
 
-	for(const auto &hist : hists) s->Add(hist);
+	for(int i = 1; i < histos.size(); i++) s->Add(histos.at(i));
 
 	// --- Drawing the upper pad
 	
@@ -209,20 +329,20 @@ void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> 
 
     // --- Draw the logo ---
 
-    double logo_y1 = input[region][string_var]["atlas_logo_y1"].get<double>();
-    double logo_y2 = input[region][string_var]["atlas_logo_y2"].get<double>();
-    double logo_y3 = input[region][string_var]["atlas_logo_y3"].get<double>();
+    double logo_y1 = input[region][var]["atlas_logo_y1"].get<double>();
+    double logo_y2 = input[region][var]["atlas_logo_y2"].get<double>();
+    double logo_y3 = input[region][var]["atlas_logo_y3"].get<double>();
     double logo_x = input[region]["stack_logo_x"].get<double>();
 
-    draw_logo(logo_x,logo_y1,logo_y2,logo_y3,region,input);
+    draw_logo(logo_x,logo_y1,logo_y2,logo_y3,input);
 
     // --- Draw the legend ---
     
-    draw_legend(hists_leg,leg_map);
+    draw_legend();
 
     // --- Draw data ---
 
-    h_data->Draw("e1x0p same");
+    histos.at(0)->Draw("e1x0p same");
 
     // --- Logarithmic scale ---
 
@@ -239,14 +359,14 @@ void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> 
 
     // --- Clone the histograms for the ratio plot ---
 
-    TH1F *h_Data = dynamic_cast<TH1F*>(h_data->Clone("h_Data"));
-    TH1F *h_sum = dynamic_cast<TH1F*>(hists.at(0)->Clone("h_sum"));
+    TH1F *h_Data = dynamic_cast<TH1F*>(histos.at(0)->Clone("h_Data"));
+    TH1F *h_sum = dynamic_cast<TH1F*>(histos.at(1)->Clone("h_sum"));
 
-    // --- Not taking again into account the first histo ---
+    // --- Not taking again into account the second histo for the background sum ---
     // --- This is because it was already copied above ---
     // --- Otherwise its contribution is counted twice ---
 
-    for(int i = 1; i < size; i++) h_sum->Add(hists.at(i));
+    for(int i = 2; i < histos.size(); i++) h_sum->Add(histos.at(i));
 
     // --- Divide the histograms and draw the ratio ---
 
@@ -284,37 +404,145 @@ void draw_ratio_plot(const TString &var, TCanvas *&c, const std::vector <TH1F*> 
     // --- All the histograms have the same limits in their X axis ---
     // --- The limits can be computed like that ---
 
-    int first_bin = h_data->FindFirstBinAbove(-10);
-    int last_bin = h_data->FindLastBinAbove(-10);
+    int first_bin = histos.at(0)->FindFirstBinAbove(-10);
+    int last_bin = histos.at(0)->FindLastBinAbove(-10);
 
-    double minx = h_data->GetBinLowEdge(first_bin);
-    double maxx = h_data->GetBinLowEdge(last_bin) + h_data->GetBinWidth(last_bin);
+    double minx = histos.at(0)->GetBinLowEdge(first_bin);
+    double maxx = histos.at(0)->GetBinLowEdge(last_bin) + histos.at(0)->GetBinWidth(last_bin);
 
     draw_line(kBlack,1,minx,1,maxx,1);
  }
 
- // --- This function gives the binned likelihood value ---
- // --- The value that is returned is different for each bin ---
- // --- The flag corresponds to the calculation with or withour the nuisance parameter ---
+// --- This function will turn the JSON file string vectors in to TString vectors ---
 
- //************************************************************************
-double log_likelihood(int bin, double par[], int flag)
+//************************************************************************
+std::vector <TString> LikelihoodFit::vecs_from_json_string(const json &input, const std::string &name)
+//************************************************************************
+{
+    std::vector <TString> vec;
+
+    for(const auto &elements : input[region][name])
+    {
+        TString element(elements.get<std::string>());
+        vec.push_back(element);
+    }
+
+    return vec;
+}
+
+// --- This function will turn the JSON file int vectors in to TString vectors ---
+
+//************************************************************************
+std::vector <int> LikelihoodFit::vecs_from_json_int(const json &input, const std::string &name)
+//************************************************************************
+{
+    std::vector <int> vec;
+
+    for(const auto &elements : input[region][name])
+    {
+        int element = elements;
+        vec.push_back(element);
+    }
+
+    return vec;
+}
+
+// --- This function will set all the vectors ---
+
+//************************************************************************
+void LikelihoodFit::GetVectors(const json &input)
+//************************************************************************
+{
+    histo_names = vecs_from_json_string(input,"histo_names");
+    leg_names = vecs_from_json_string(input,"leg_names");
+    fill_color = vecs_from_json_int(input,"fill_colors");
+}
+
+// --- This function is asking the user if they want to print the canvas in a pdf form ---
+
+//************************************************************************
+void LikelihoodFit::print_image(std::unique_ptr<TCanvas> &c, const TString &mode)
+//************************************************************************
+{
+    std::string ans;
+    
+    std::cout << std::endl << "Do you want to print the canvas [y/n]: ";
+    std::cin >> ans;
+
+    while(ans != "y" && ans!= "n")
+    {
+        std::cout << "You have entered an invalid choice!" << std::endl;
+        std::cout << "Do you want to print the canvas [y/n]: ";
+        std::cin >> ans;
+    }
+
+    if(ans == "y")
+    {
+        c->Print(var + "_" + mode + ".pdf");
+    }
+
+}
+
+// --- This function sets the fit flag for the different fit cases ---
+
+//************************************************************************
+void LikelihoodFit::SetFitFlag(const int &fit_flag)
+//************************************************************************
+{
+    this->fit_flag = fit_flag;
+}
+
+// --- This function sets the number of parameters for the fit ---
+
+//************************************************************************
+void LikelihoodFit::SetNpar(int npar)
+//************************************************************************
+{
+    this->npar = npar;
+}
+
+// --- This function gives the number of parameters for the fit ---
+
+//************************************************************************
+int LikelihoodFit::GetNpar()
+//************************************************************************
+{
+    return npar;
+}
+
+// --- This function gives the binned likelihood value ---
+// --- The value that is returned is different for each bin ---
+// --- The flag corresponds to the calculation with or withour the nuisance parameter ---
+
+//************************************************************************
+double LikelihoodFit::log_likelihood(int bin, double param[], int flag)
 //************************************************************************
 {
     double val;
 
+    // --- Defining the needed fit functions ---
+    
     TF1 *poisson = new TF1("p","TMath::Poisson(x,[0])",0,1e5);
     TF1 *gauss = new TF1("g","gaus(0)",-10,10);
 
-    // --- Getting the singal counts from the global signal histo ---
-
-    double s = h_signal->GetBinContent(bin);
-
-    // --- Getting the total background counts ---
-
+    double s = 0;
     double b = 0;
 
-    for(auto &hist : histos) b += hist->GetBinContent(bin);
+    // --- The histogram that contains the name of region is considered as signal ---
+    // --- The rest is considered as background ---
+    
+    for(int i = 1; i < histos.size(); i++)
+    {
+        TString name = histos.at(i)->GetName();
+
+        if(name.Contains(region))
+        {
+            s = histos.at(i)->GetBinContent(bin);
+            continue;
+        }
+
+        b += histos.at(i)->GetBinContent(bin);
+    }
 
     // --- The luminosity systematic is inserted in the likelihood as a nuisance parameter p[0] which can change the number of total predicted events ---
     // --- This parameter is known to follow a Gaussian distribution, is centered around 1 and has a realative error of 2% ---
@@ -327,86 +555,105 @@ double log_likelihood(int bin, double par[], int flag)
  
     if(flag == 0)
     {
-        poisson->SetParameter(0,( (par[0]*s) + b ) );
+        poisson->SetParameter(0,( (param[0]*s) + b ) );
        
-        val = log(poisson->Eval(h_data->GetBinContent(bin)));
+        val = log(poisson->Eval(histos.at(0)->GetBinContent(bin)));
     } 
 
     // --- Corresponds to the calculation with the systematic uncertainty ---
 
     else if(flag == 1)
     {
-        poisson->SetParameter(0,par[1]*( (par[0]*s) + b ) );
+        poisson->SetParameter(0,param[1]*( (param[0]*s) + b ) );
 
-        val = log(poisson->Eval(h_data->GetBinContent(bin))) + log(gauss->Eval(par[1]));
+        val = log(poisson->Eval(histos.at(0)->GetBinContent(bin))) + log(gauss->Eval(param[1]));
     } 
 
     return val;
 
 }
 
-
 // --- This is the function that is going to be given to the minimizer ---
 // --- It can't get different arguments, otherwise TMinuit is not working ---
 
 //************************************************************************
-void fcn(int &npar, double *deriv, double &f, double *par, int flag)
+void LikelihoodFit::fcn(int &npar, double *deriv, double &f, double *param, int flag)
 //************************************************************************
 {
+    
     double lnL = 0;
 
-    int size = best_fit.size();
+    int size = instance->best_fit.size();
 
     double vals[size];
 
-    for(int i = 0; i < size; i++) vals[i] = best_fit.at(i);
+    for(int i = 0; i < size; i++) vals[i] = instance->best_fit.at(i);
 
     // --- All of the histograms have the same number of bins ---
 
-    int nbins = h_data->GetNbinsX();
+    int nbins = instance->histos.at(0)->GetNbinsX();
 
     for(int i = 1; i <= nbins; i++)
     {
         // --- Binned likelihood fit ---
 
-        if(fit_flag == 0)
+        if(instance->fit_flag == 0)
         {
-            lnL = lnL + log_likelihood(i, par, 0);
+            lnL = lnL + instance->log_likelihood(i, param, 0);
         }
 
         // --- Binned likelihood ratio fit ---
 
-        else if(fit_flag == 1) 
+        else if(instance->fit_flag == 1) 
         {
-            vals[0] = best_fit.at(0);
+            vals[0] = instance->best_fit.at(0);
             
-            lnL = lnL + log_likelihood(i, par, 0) - log_likelihood(i, vals, 0);
+            lnL = lnL + instance->log_likelihood(i, param, 0) - instance->log_likelihood(i, vals, 0);
+        
         }
 
          // --- Likelihood ratio fit with one nuisance parameter ---
 
-        else if(fit_flag == 2)
+        else if(instance->fit_flag == 2)
         {
-            lnL = lnL + log_likelihood(i, par, 1);
+            lnL = lnL + instance->log_likelihood(i, param, 1);
         } 
     }
 
     f = -2*lnL;
 }
 
+// --- This function will load the parameters for the fit ---
+
+//************************************************************************
+void LikelihoodFit::LoadParameters(const json &input)
+//************************************************************************
+{
+    // --- Loading the vectors ---
+    
+    par = {input[region]["par_guess"].get<double>()};
+    stepSize = {input[region]["par_step"].get<double>()};
+    minVal = {input[region]["par_min"].get<double>()};
+    maxVal = {input[region]["par_max"].get<double>()};
+    parName = {input[region]["par_name"].get<std::string>()};
+}
+
 // --- This function gets a TMinuit minimizer of npar parameters and returns a vector of the best fit values ---
 
 //************************************************************************
-std::vector<double> get_best_fit_values(TMinuit *&minimizer,const int npar, const std::vector <double> &par, const std::vector <double> &stepSize, const std::vector <double> &minVal,const std::vector <double> &maxVal, const std::vector <std::string> &parName)
+std::vector<double> LikelihoodFit::get_best_fit_values(TMinuit *minimizer)
 //************************************************************************
 {
     std::vector<double> values;
 
-    minimizer->SetFCN(fcn);
-
-    for(int i=0;i<npar;i++) minimizer->DefineParameter(i,parName[i].c_str(),par[i],stepSize[i],minVal[i],maxVal[i]);
-
+    // --- Setting the minimization function ---
     
+    minimizer->SetFCN(LikelihoodFit::fcn);
+
+    // --- Setting the parameters ---
+
+    for(int i = 0; i < npar; i++) minimizer->DefineParameter(i,parName[i].c_str(),par[i],stepSize[i],minVal[i],maxVal[i]);
+
     // --- The algorithm that is called for the minimization ---
     
     minimizer->Migrad();
@@ -414,84 +661,85 @@ std::vector<double> get_best_fit_values(TMinuit *&minimizer,const int npar, cons
     double outpar[npar];
     double error[npar];
 
-   for(int i=0;i<npar;i++)
-   {
-      minimizer->GetParameter(i,outpar[i],error[i]);
+    for(int i=0;i<npar;i++)
+    {
+       minimizer->GetParameter(i,outpar[i],error[i]);
 
-      std::cout << parName[i] << ": " << outpar[i] << " +/- " << error[i] << std::endl;
+       std::cout << parName[i] << ": " << outpar[i] << " +/- " << error[i] << std::endl;
 
-      values.push_back(outpar[i]);
+       // --- Keeping the best fit values in the vector ---
+
+       values.push_back(outpar[i]);  
     
     }
-
-
-   return values;
-
+    
+    return values;
    
 }
 
 // --- This function plots the likelihood ratio estimation ---
 
 //************************************************************************
-TGraph* get_likelihood_ratio_plot(TMinuit *&minimizer)
+TGraph* LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &fit)
 //************************************************************************
 {
-
+    // --- Getting the current minimizer for likelihood ratio plot ---
+    
+    TMinuit *minimizer = fit.SetBestFitValues();
+   
     // --- Scans parameter 0 ---
 
     minimizer->Command("SCAn 0");
 
-    
     // --- Gets the plot from the minimizer and returns it ---
 
     TGraph *ratio = dynamic_cast<TGraph*>(minimizer->GetPlot());
 
+    
     return ratio;
-    
+
 }
 
-// --- This function draw the sigma logo on the likelihood plot ---
+// --- This function sets the best fit values and returns the minimizer ---
 
 //************************************************************************
-void draw_sigma(double x, double y)
+TMinuit* LikelihoodFit::SetBestFitValues()
 //************************************************************************
 {
-   TLatex *sigma = new TLatex(x,y,"#color[2]{#pm1#sigma}");
-   sigma->SetTextSize(0.05);
-   sigma->SetLineColor(2);
-   sigma->Draw("same");
+    TMinuit *min = new TMinuit(npar);
+    
+    best_fit = get_best_fit_values(min);
+
+    return min;
+
 }
 
-// --- This function styles the ratios ---
+// --- This function adds parameters values for the case of fitting with two parameters ---
 
 //************************************************************************
-void style_ratios(TGraph *plot, int color, std::string region, const json &input)
+void LikelihoodFit::AddToParameters(double par1, double par2, double par3, double par4, std::string par5)
 //************************************************************************
 {
-    // --- Getting the X axis limits for the likelihood ratio ---
-
-    double likelihood_ratio_xmin = input[region]["likelihood_ratio_xmin"].get<double>();
-    double likelihood_ratio_xmax = input[region]["likelihood_ratio_xmax"].get<double>();
-   
-    // --- Style the likelihood ratio plot ---
-
-    plot->SetLineWidth(4);
-    plot->SetLineColor(color); 
-    plot->GetYaxis()->SetRangeUser(0,1.7); 
-    plot->GetXaxis()->SetRangeUser(likelihood_ratio_xmin,likelihood_ratio_xmax);
-    plot->SetTitle("");
-    plot->GetXaxis()->SetTitle("#hat{#mu}");
-    plot->GetYaxis()->SetTitle("-2ln#lambda(x;#hat{#mu})");
-    plot->SetMinimum(0);
+    // --- Adding parameters to the vectors ---
     
+    par.push_back(par1);
+    stepSize.push_back(par2);
+    minVal.push_back(par3);
+    maxVal.push_back(par4);
+    parName.push_back(par5);
 }
 
 // --- This function plots the profile likelihood ratio estimation ---
 
 //************************************************************************
-TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, double maxm, const int npars, std::vector <double> &par, const std::vector <double> &stepSize, const std::vector <double> &minVal,const std::vector <double> &maxVal, const std::vector <std::string> &parName)
+TGraph* LikelihoodFit::get_profile_likelihood_ratio_plot(const json &input)
 //************************************************************************
 {
+    // --- Getting the minimum and maximum values for the profile likehood ratio plot ---
+    
+    double minm = input[region]["mu_min"].get<double>();
+	double maxm = input[region]["mu_max"].get<double>();
+
     // --- 100 points will be used to draw the profile likelihood plot ---
     
     const int npoints = 100;
@@ -509,13 +757,21 @@ TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, doub
 
     // --- Arrays to be used for the profile likelihood estimation ---
 
-    double numerator[npars];
-    double denominator[npars];
+    double numerator[npar];
+    double denominator[npar];
 
     // --- Getting the maximum likelihood values to denominator --
 
     denominator[0] = best_fit.at(0);
     denominator[1] = best_fit.at(1);
+
+    // --- Defining a TMinuit object ---
+
+    TMinuit *minimizer = new TMinuit(npar);
+
+    // --- Setting the function to be minimized ---
+    
+    minimizer->SetFCN(LikelihoodFit::fcn);
 
     for(int i = 0; i < npoints; i++)
     {
@@ -533,7 +789,7 @@ TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, doub
 
         // --- Giving the parameters to the minimizer ---
 
-        for(int j = 0; j < npars; j++)
+        for(int j = 0; j < npar; j++)
         {
             minimizer->DefineParameter(j,parName[j].c_str(),par[j],stepSize[j],minVal[j],maxVal[j]);
         }
@@ -552,7 +808,7 @@ TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, doub
 
         // --- The bin number is the same for every histogram ---
 
-        int nbins = h_data->GetNbinsX();
+        int nbins = histos.at(0)->GetNbinsX();
 
         for(int k = 1; k <= nbins; k++)
         {
@@ -575,10 +831,46 @@ TGraph* get_profile_likelihood_ratio_plot(TMinuit *&minimizer, double minm, doub
 
 }
 
+// --- This function styles the ratios ---
+
+//************************************************************************
+void LikelihoodFit::style_ratios(TGraph *plot, int color, const json &input)
+//************************************************************************
+{
+    // --- Getting the X axis limits for the likelihood ratio ---
+
+    double likelihood_ratio_xmin = input[region]["likelihood_ratio_xmin"].get<double>();
+    double likelihood_ratio_xmax = input[region]["likelihood_ratio_xmax"].get<double>();
+   
+    // --- Style the likelihood ratio plot ---
+
+    plot->SetLineWidth(4);
+    plot->SetLineColor(color); 
+    plot->GetYaxis()->SetRangeUser(0,1.7); 
+    plot->GetXaxis()->SetRangeUser(likelihood_ratio_xmin,likelihood_ratio_xmax);
+    plot->SetTitle("");
+    plot->GetXaxis()->SetTitle("#hat{#mu}");
+    plot->GetYaxis()->SetTitle("-2ln#lambda(x;#hat{#mu})");
+    plot->SetMinimum(0);
+    
+}
+
+// --- This function draw the sigma logo on the likelihood plot ---
+
+//************************************************************************
+void LikelihoodFit::draw_sigma(double x, double y)
+//************************************************************************
+{
+   TLatex *sigma = new TLatex(x,y,"#color[2]{#pm1#sigma}");
+   sigma->SetTextSize(0.05);
+   sigma->SetLineColor(2);
+   sigma->Draw("same");
+}
+
 // --- This function takes the likelihood plots and fits a quadratic function to calculate the errors ---
 
 //************************************************************************
-std::tuple<double,double,double> quadratic_fit(TGraph *plot, std::string region, const json &input)
+std::tuple<double,double,double> LikelihoodFit::quadratic_fit(TGraph *plot, const json &input)
 //************************************************************************
 {
     // --- Getting the x values for the fit from the json file ---
@@ -628,21 +920,34 @@ std::tuple<double,double,double> quadratic_fit(TGraph *plot, std::string region,
     return std::make_tuple(x1,x2,total_error);
 }
 
+// --- This function draws the legend for the likelihood comparison plot ---
+
+//************************************************************************
+void LikelihoodFit::draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio)
+//************************************************************************
+{
+   TLegend *leg = new TLegend(0.72,0.15,0.9,0.25);
+   leg->AddEntry(ratio,"#bf{Stat}.","l");
+   leg->AddEntry(profile_ratio,"#bf{Stat. #oplus Syst.}","l");
+   leg->SetBorderSize(0);
+   leg->Draw();
+}
+
 // --- This function draws the two ratios together ---
 
 //************************************************************************
-void draw_ratios(TGraph *ratio, TGraph *profile_ratio, TCanvas *canvas, const TString &var, std::string region, const json &input)
+void LikelihoodFit::draw_ratios(TGraph *ratio, TGraph *profile_ratio,std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
     // --- Showing the canvas ---
 
-    canvas->cd();
+    c->cd();
 
     // --- Styling the ratios ---
 
-    style_ratios(ratio,kBlue,region,input);
+    style_ratios(ratio,kBlue,input);
     
-    style_ratios(profile_ratio,kMagenta,region,input);
+    style_ratios(profile_ratio,kMagenta,input);
 
 
     // --- Fiting the two ratios with a quadratic function and printing the information ---
@@ -655,13 +960,13 @@ void draw_ratios(TGraph *ratio, TGraph *profile_ratio, TCanvas *canvas, const TS
     
     std::cout << "Likelihood ratio estimation: ";
     
-    std::tuple<double,double,double> errors_r = quadratic_fit(ratio,region,input);
+    std::tuple<double,double,double> errors_r = quadratic_fit(ratio,input);
 
     std::cout << "----------------------------------------------------------------------" << std::endl;
     
     std::cout << "Profile Likelihood ratio estimation: ";
     
-    std::tuple<double,double,double> errors_pr = quadratic_fit(profile_ratio,region,input);
+    std::tuple<double,double,double> errors_pr = quadratic_fit(profile_ratio,input);
 
     std::cout << "----------------------------------------------------------------------" << std::endl;
 
@@ -711,96 +1016,10 @@ void draw_ratios(TGraph *ratio, TGraph *profile_ratio, TCanvas *canvas, const TS
 
     // --- Draw the ATLAS logo ---
 
-    draw_logo(ratio_logo_x,1.5,1.35,1.2,region,input);
+    draw_logo(ratio_logo_x,1.5,1.35,1.2,input);
 
     // --- Draws the legend ---
 
     draw_likelihood_legend(ratio,profile_ratio);
 
 }
-
-// --- This function draws the legend for the likelihood comparison plot ---
-
-//************************************************************************
-void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio)
-//************************************************************************
-{
-   TLegend *leg = new TLegend(0.72,0.15,0.9,0.25);
-   leg->AddEntry(ratio,"#bf{Stat}.","l");
-   leg->AddEntry(profile_ratio,"#bf{Stat. #oplus Syst.}","l");
-   leg->SetBorderSize(0);
-   leg->Draw();
-}
-
-// --- This function is asking the user if they want to print the canvas in a pdf form ---
-
-//************************************************************************
-void print_canvas(TCanvas *&c, TString image_name)
-//************************************************************************
-{
-    std::string ans;
-    
-    std::cout << std::endl << "Do you want to print the canvas [y/n]: ";
-    std::cin >> ans;
-
-    while(ans != "y" && ans!= "n")
-    {
-        std::cout << "You have entered an invalid choice!" << std::endl;
-        std::cout << "Do you want to print the canvas [y/n]: ";
-        std::cin >> ans;
-    }
-
-    if(ans == "y")
-    {
-        c->Print(image_name + ".pdf");
-    }
-
-}
-
-// --- This function ensures that the region the user provides is valid ---
-
-//************************************************************************
-void region_choice(std::string &region)
-//************************************************************************
-{
-    std::cout << std::endl << "Enter the region you want to plot: ";
-    std::cin >> region;
-
-    while(region != "ZZ" && region != "WZ_qcd")
-    {
-        std::cout << "Not valid region!" << std::endl;
-        std::cout << "You can choose between: ZZ and WZ_qcd!" << std::endl;
-        std::cout << "Enter the region you want to plot: ";
-        std::cin >> region;
-    }
-}
-
-// --- This function finds the histogram that corresponds to the signal in each region ---
-// --- After that it removes it from the global vector, so that all the other histograms correspond to backgrounds ---
-
-//************************************************************************
-void find_signal_hist(std::vector<TH1F*> &histos)
-//************************************************************************
-{
-    // --- Initializing the for loop using an iterator to the vector ---
-
-    for(auto it = histos.begin(); it != histos.end(); )
-    {
-        TString name = (*it)->GetName();
-        bool condition = name.Contains(region);
-
-        // --- If the condition is satisfied, the loop ends ---
-        // --- The signal histogram is removed from the vector ---
-        
-        if(condition)
-        {
-            h_signal = (*it);
-            it = histos.erase(it);
-            break;
-        }
-
-        else it++;
-    }
-}
-
-
