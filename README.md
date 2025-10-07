@@ -54,11 +54,11 @@ Below one can see some examples of the plots that are generated with this projec
 
 This is an example of Data and Simulations stacked together in the `ZZ` region:
 
-![Distribution of all Data and Simulations](output/ZZ/mwz_distribution.pdf)
+![Distribution of all Data and Simulations](output/ZZ/mwz_distribution.png)
 
 This is an example of the Likelihood Ratio and Profile Likelihood Ratio estimation plotted together to emphasize the fact that the systematic uncertainty increases the total uncertainty of the estimation:
 
-![Distribution of all Data and Simulations](output/ZZ/mwz_likelihood.pdf)
+![Distribution of all Data and Simulations](output/ZZ/mwz_likelihood.png)
 
 More examples of the plots generated using this project can be found in the **output** folder of this repository.
 
