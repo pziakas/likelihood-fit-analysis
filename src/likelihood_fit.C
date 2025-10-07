@@ -478,7 +478,7 @@ void LikelihoodFit::print_image(std::unique_ptr<TCanvas> &c, const TString &mode
 
     if(ans == "y")
     {
-        c->Print(var + "_" + mode + ".pdf");
+        c->Print(var + "_" + mode + ".png");
     }
 
 }
