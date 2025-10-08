@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     fit.GetVectors(input);
 
-    // --- Getting the path from the JSON file, change it into your own path ---
+    // --- Getting the path from the JSON file ---
 
     fit.FileOpen(input);
 

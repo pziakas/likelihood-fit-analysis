@@ -4,7 +4,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -O2
 ROOTFLAGS = `root-config --cflags --libs` -lMinuit
 
-SRC = main.cpp likelihood_fit.C
+SRC = src/main.cpp src/likelihood_fit.C
 OUT = likelihood_fit
 
 all: $(OUT)

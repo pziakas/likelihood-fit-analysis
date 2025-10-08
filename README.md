@@ -29,24 +29,41 @@ While originally applied to particle physics data, the techniques showcased here
 - C++17  
 - [ROOT](https://root.cern/) (data analysis framework)  
 - [JSON for Modern C++](https://github.com/nlohmann/json) (config parsing)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ## Usage 
 
-To run the project, the user needs to have the following installed:
+In order for the user to be able to run the project on their local machine without needing to install the ROOT framework package, a Dockerfile is included. 
 
-- [ROOT](https://root.cern/)
-- [JSON for Modern C++](https://github.com/nlohmann/json)
+To build the project in a container using the docker file, the following command is needed:
 
-Make sure to configure the paths in the JSON file according to your system setup. Then using the Makefile provided in this project, the user can run the project using the following commands:
-
-```bash 
-
-cd path/to/the/project/
-make
-./likelihood_fit 
+```bash
+docker build -t likelihood_fit .
 ```
 
-The user will need to follow the interactive prompts to select a variable as input and select a region in which the fit will be performed. 
+To run using interactive input, taking into account the JSON file, the input files that are needed for the project to run and have the ouput pasted on the local directory, this command is used:
+
+```bash
+docker run -it -v "$(pwd)/input.json:/app/input.json" -v "$(pwd)/data:/app/data" likelihood_fit
+```
+
+The user should follow the interactive prompts to choose a variable and a region. The project is asking the user if they want to print the results as png files, with their names being print after the interactive prompt. If the user wants to see the images, they should first find the name of the container generated:
+
+```bash
+docker ps -a
+```
+
+Then, having retrieved the name of the container, the can copy the png image on their local repository using this command:
+
+```bash
+docker cp container_name:/app/name_of_the_image.png .
+```
+
+Finally, they can delete the container with following command:
+
+```bash
+docker rm container_name
+```
 
 ## Output Plots
 
