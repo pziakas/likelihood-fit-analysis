@@ -43,7 +43,7 @@ using json = nlohmann::json;
 // #                      #
 // ########################
 
-// --- Static pointer of the class ---
+// --- Static pointer of the class, needed to access the fcn function ---
 
 LikelihoodFit* LikelihoodFit::instance = nullptr;
 
@@ -575,6 +575,7 @@ double LikelihoodFit::log_likelihood(int bin, double param[], int flag)
 
 // --- This is the function that is going to be given to the minimizer ---
 // --- It can't get different arguments, otherwise TMinuit is not working ---
+// --- By definition static, so a static member is needed to access this function ---
 
 //************************************************************************
 void LikelihoodFit::fcn(int &npar, double *deriv, double &f, double *param, int flag)
