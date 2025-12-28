@@ -1,4 +1,4 @@
-# Maximum Likelihood Estimation Analysis in Particle Physics Data
+# Statistical Modeling & Parameter inference using Maximum Likelihood techniques 
 
 ## Overview 
 
@@ -19,7 +19,7 @@ While originally applied to particle physics data, the techniques showcased here
 - **Maximum Likelihood Estimation (MLE):** Implements parameter estimation using ROOT's `TMinuit` minimizer for robust statistical inference.
 - **Profile Likelihood Ratio:** Quantifies the impact of nuisance parameters on signal strength estimation, improving model reliability.
 - **Uncertainty Quantification:** Fits likelihood curves with quadratic functions to extract parameter uncertainties and confidence intervals.
-- **Customizable Analysis Regions:** Supports multiple physics control regions (`ZZ`, `WZ_qcd`), allowing flexible application of the model.
+- **Customizable Analysis Regions:** Supports multiple configurable regions, allowing flexible application of the model (particle physics examples included).
 - **Visualization:** Generates publication-quality plots including likelihood ratio curves, profile likelihood comparisons, and annotated confidence intervals.
 - **Interactive Workflow:** User inputs guide the analysis, facilitating exploration of different variables and regions.
 - **Integration with JSON Configuration:** Uses JSON files to configure input parameters and file paths, enhancing reproducibility and ease of use.
@@ -53,7 +53,7 @@ The user should follow the interactive prompts to choose a variable and a region
 docker ps -a
 ```
 
-Then, having retrieved the name of the container, the can copy the png image on their local repository using this command:
+Then, having retrieved the name of the container, they can copy the png image on their local repository using this command:
 
 ```bash
 docker cp container_name:/app/name_of_the_image.png .
@@ -69,11 +69,11 @@ docker rm container_name
 
 Below one can see some examples of the plots that are generated with this project.
 
-This is an example of Data and Simulations stacked together in the `ZZ` region:
+This is an example of Data and Simulations visualization, stacked together (ATLAS experiment data):
 
 ![Distribution of all Data and Simulations](output/ZZ/mwz_distribution.png)
 
-This is an example of the Likelihood Ratio and Profile Likelihood Ratio estimation plotted together to emphasize the fact that the systematic uncertainty increases the total uncertainty of the estimation:
+This is an example of likelihood ratio and profile likelihood parameter estimation, showing how systematic uncertainty affects total uncertainty (ATLAS experiment data):
 
 ![Distribution of all Data and Simulations](output/ZZ/mwz_likelihood.png)
 
