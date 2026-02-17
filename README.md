@@ -27,7 +27,7 @@ While originally applied to particle physics data, the techniques showcased here
 ## Technologies Used
 
 - C++17  
-- [ROOT](https://root.cern/) (data analysis framework)  
+- [ROOT](https://root.cern/) (A C++ statistical and data analysis framework)  
 - [JSON for Modern C++](https://github.com/nlohmann/json) (config parsing)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
