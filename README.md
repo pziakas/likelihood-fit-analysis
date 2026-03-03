@@ -56,10 +56,10 @@ docker ps -a
 Then, having retrieved the name of the container, they can copy the png image on their local repository using this command:
 
 ```bash
-docker cp container_name:/app/name_of_the_image.png .
+docker cp container_name:/app/Images/ .
 ```
 
-Finally, they can delete the container with following command:
+This command will create an `Images/` folder on the users local repository, which will contain all the generated images. Finally, they can delete the container with following command:
 
 ```bash
 docker rm container_name
