@@ -59,7 +59,7 @@ Then, having retrieved the name of the container, they can copy the png image on
 docker cp container_name:/app/Images/ .
 ```
 
-This command will create an `Images/` folder on the users local repository, which will contain all the generated images. Finally, they can delete the container with following command:
+This command will copy the `Images/` folder on the users local repository, which will contain all the generated images. Finally, they can delete the container with following command:
 
 ```bash
 docker rm container_name
