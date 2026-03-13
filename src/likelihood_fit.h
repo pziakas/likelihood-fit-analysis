@@ -81,12 +81,11 @@ class LikelihoodFit
     LikelihoodFit();
     ~LikelihoodFit();
     void FileOpen(const json &input);
-    void SetRegion();
+    void SetRegion(const json &input);
     TString GetRegion();
-    void SetVar();
+    void SetVar(const json &input);
     void GetHistos(const json &input);
     void StyleHistos();
-    void CheckHistos();
     void draw_logo(double xmin, double xmax1, double xmax2, double xmax3, const json &input);
     void draw_legend();
     void draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax);
@@ -94,7 +93,7 @@ class LikelihoodFit
     void GetVectors(const json &input);
     std::vector <int> vecs_from_json_int(const json &input, const std::string &name);
     std::vector <TString> vecs_from_json_string(const json &input, const std::string &name);
-    void print_image(std::unique_ptr<TCanvas> &c, const TString &mode);
+    void print_image(std::unique_ptr<TCanvas> &c, const TString &mode, const json &input);
     void SetFitFlag(const int &fit_flag);
     double log_likelihood(int bin, double param[], int flag);
     void LoadParameters(const json &input);
@@ -112,6 +111,7 @@ class LikelihoodFit
     std::tuple<double,double,double> quadratic_fit(TGraph *plot, const json &input);
     void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio);
     void draw_ratios(TGraph *ratio, TGraph *profile_ratio,std::unique_ptr<TCanvas> &c, const json &input);
+    void ShowVars(const json &input);
 
 };
 

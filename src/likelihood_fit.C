@@ -95,10 +95,9 @@ void LikelihoodFit::FileOpen(const json &input)
     
     file = TFile::Open(path + filename + var + ".root","read");
 
-    if(!file)
+    if(!file || file->IsZombie())
     {
-        std::cout << std::endl << "Could not open the file! Exiting..." << std::endl;
-        std::exit(1);
+        throw std::runtime_error("The file could not be opened!");
     }
 
     std::cout << std::endl << "File " << file->GetName() << " opened successfully!" << std::endl;
@@ -107,20 +106,14 @@ void LikelihoodFit::FileOpen(const json &input)
 // --- This is a function to set the region ---
 
 //************************************************************************
-void LikelihoodFit::SetRegion()
+void LikelihoodFit::SetRegion(const json &input)
 //************************************************************************
 {
-    TString region;
+    TString region(input["region"].get<std::string>());
 
-    std::cout << "Enter the region you want to plot: ";
-    std::cin >> region;
-
-    while(region != "ZZ" && region != "WZ_qcd")
+    if(region != "ZZ" && region != "WZ_qcd")
     {
-        std::cout << "Not valid region!" << std::endl;
-        std::cout << "You can choose between: ZZ and WZ_qcd!" << std::endl;
-        std::cout << "Enter the region you want to plot: ";
-        std::cin >> region;
+        throw std::runtime_error("You have entered an invalid region! Choose between ZZ and WZ_qcd!");
     }
 
     this->region = region;
@@ -138,23 +131,36 @@ TString LikelihoodFit::GetRegion()
 // --- This is a function to set the variable to be plotted ---
 
 //************************************************************************
-void LikelihoodFit::SetVar()
+void LikelihoodFit::SetVar(const json &input)
 //************************************************************************
 {
-    TString var;
+    TString var(input["var"].get<std::string>());
 
-    std::cout << "Enter the variable you want to plot: ";
-    std::cin >> var;
+    if(var != "mwz" && var != "sum3pt" && var != "mtwz")
+    {
+        throw std::runtime_error("You have entered an invalid variable! Choose between mwz, sum3pt and mtwz!");
+    }
 
-    while(var != "mwz" && var != "sum3pt" && var != "mtwz")
-	{
-		std::cout << "Not valid variable!" << std::endl;
-        std::cout << "You can choose between: mwz, sum3pt or mtwz!" << std::endl;
-		std::cout << "Enter the variable you want to plot: ";
-		std::cin >> var;
-	}
+    std::cout << std::endl << "Variable that will be used: " << var << std::endl;
 
    this->var = var;
+}
+
+// --- This is a function that types all the available variables ---
+
+//******************************************************************
+void LikelihoodFit::ShowVars(const json &input)
+//****************************************************************** 
+{
+    std::vector<std::string> vars = input["variables"].get<std::vector<std::string>>();
+    
+    std::cout << "The available variables for the fit are the following: " << std::endl;
+
+    std::cout << std::endl << "####################" << std::endl;
+
+    for(const auto &var : vars) std::cout << var << std::endl;
+
+    std::cout << "####################" << std::endl;
 }
 
 // --- This is a function that gets all the histograms --
@@ -173,9 +179,16 @@ void LikelihoodFit::GetHistos(const json &input)
         
         TH1F *histo = dynamic_cast<TH1F*>(file->Get(name));
 
+        if(!histo || histo->IsZombie())
+        {
+            throw std::runtime_error("Histogram" + name + "could not be successfully opened!");
+        }
+
         // --- Setting the name of the histogram ---
         
         histo->SetName(histo_name);
+
+        std::cout << std::endl << "Histogram " << histo->GetName() << " opened successfully!" << std::endl;
 
         // --- Filling the histogram vector ---
         
@@ -210,24 +223,6 @@ void LikelihoodFit::StyleHistos()
      
     }
 
-}
-
-// --- This function checks if the histograms have been correctly taken from the file ---
-
-//************************************************************************
-void LikelihoodFit::CheckHistos()
-//************************************************************************
-{
-    for(const auto &histo : histos)
-    {
-        if(!histo)
-        {
-            std::cout << std::endl << "Histogram could not be successfully opened! Exiting..." << std::endl;
-            std::exit(1);
-        }
-
-        std::cout << std::endl << "Histogram " << histo->GetName() << " opened successfully!" << std::endl;
-    }
 }
 
 // --- This function draws the ATLAS logo ---
@@ -461,19 +456,15 @@ void LikelihoodFit::GetVectors(const json &input)
 // --- This function is asking the user if they want to print the canvas in a pdf form ---
 
 //************************************************************************
-void LikelihoodFit::print_image(std::unique_ptr<TCanvas> &c, const TString &mode)
+void LikelihoodFit::print_image(std::unique_ptr<TCanvas> &c, const TString &mode, const json &input)
 //************************************************************************
 {
-    std::string ans;
-    
-    std::cout << std::endl << "Do you want to print the canvas [y/n]: ";
-    std::cin >> ans;
+    std::string ans = input["image_print"].get<std::string>();
 
-    while(ans != "y" && ans!= "n")
+    if(ans != "y" && ans != "n")
     {
-        std::cout << "You have entered an invalid choice!" << std::endl;
-        std::cout << "Do you want to print the canvas [y/n]: ";
-        std::cin >> ans;
+       std::cerr << "WARNING: The option you have entered for image printing is invalid! Choose between y and n!" << std::endl;
+       std::cerr << "The image will not be printed!" << std::endl;
     }
 
     if(ans == "y")

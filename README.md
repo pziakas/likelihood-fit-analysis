@@ -47,7 +47,7 @@ To run using interactive input, taking into account the JSON file, the input fil
 docker run -it -v "$(pwd)/input.json:/app/input.json" -v "$(pwd)/data:/app/data" likelihood_fit
 ```
 
-The user should follow the interactive prompts to choose a variable and a region. The project is asking the user if they want to print the results as png files, with their names being print after the interactive prompt. If the user wants to see the images, they should first find the name of the container generated:
+The user can configure the variable and the region that will be used through the JSON configuration file. The project is printing the results as png files, but the user can disable this setting by configuring accordingly the JSON file. If the user wants to see the images, they should first find the name of the container generated:
 
 ```bash
 docker ps -a

@@ -1,6 +1,14 @@
 {
     "path": "data/",
 
+	"region": "ZZ",
+
+	"image_print": "y",
+
+	"variables": ["mwz","sum3pt","mtwz"],
+
+	"var": "mwz",
+
 	"ZZ": {
 
 		"filename": "zz_cr_histos_", 
