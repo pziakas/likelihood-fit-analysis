@@ -78,8 +78,8 @@ LikelihoodFit::~LikelihoodFit()
     
     histos.clear();
 
-    //file->Close();
-    //delete file;
+    file->Close();
+    delete file;
 
     std::cout << "You have deleted a LikelihoodFit object" << std::endl;
 }
