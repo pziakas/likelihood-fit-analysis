@@ -103,8 +103,19 @@ int main(int argc, char **argv)
 
     // --- Getting the Log Likelihood Ratio ---
 
-    TGraph *ratio = fit.get_likelihood_ratio_plot(fit);
+    auto ratio = std::unique_ptr<TGraph>();
 
+    try
+    {
+       ratio = fit.get_likelihood_ratio_plot(fit);
+    } 
+    
+    catch(const std::exception& e)
+    {
+        std::cerr << "ERROR: " <<  e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+   
     fit.SetNpar(2);
 
     // --- Profile Likelihood Ratio estimation ---
@@ -119,7 +130,7 @@ int main(int argc, char **argv)
 
     // --- Getting the Profile Likelihood Ratio ---
 
-    TGraph *profile_ratio = fit.get_profile_likelihood_ratio_plot(input);
+    auto profile_ratio = fit.get_profile_likelihood_ratio_plot(input);
 
 	fit.draw_ratios(ratio,profile_ratio,c,input);
 

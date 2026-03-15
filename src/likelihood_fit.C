@@ -78,8 +78,8 @@ LikelihoodFit::~LikelihoodFit()
     
     histos.clear();
 
-    file->Close();
-    delete file;
+    //file->Close();
+    //delete file;
 
     std::cout << "You have deleted a LikelihoodFit object" << std::endl;
 }
@@ -672,7 +672,7 @@ std::vector<double> LikelihoodFit::get_best_fit_values(TMinuit *minimizer)
 // --- This function plots the likelihood ratio estimation ---
 
 //************************************************************************
-TGraph* LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &fit)
+std::unique_ptr<TGraph> LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &fit)
 //************************************************************************
 {
     // --- Getting the current minimizer for likelihood ratio plot ---
@@ -687,8 +687,17 @@ TGraph* LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &fit)
 
     TGraph *ratio = dynamic_cast<TGraph*>(minimizer->GetPlot());
 
+    if(!ratio || ratio->IsZombie())
+    {
+        throw std::runtime_error("Likelihood ratio plot could not be retrieved!");
+    }
+
+    std::cout << std::endl << "Likelihood ratio plot retrieved successfully!" << std::endl;
+
+    auto ratio_ptr = std::unique_ptr<TGraph>(static_cast<TGraph*>(ratio->Clone()));
+
     
-    return ratio;
+    return ratio_ptr;
 
 }
 
@@ -724,7 +733,7 @@ void LikelihoodFit::AddToParameters(double par1, double par2, double par3, doubl
 // --- This function plots the profile likelihood ratio estimation ---
 
 //************************************************************************
-TGraph* LikelihoodFit::get_profile_likelihood_ratio_plot(const json &input)
+std::unique_ptr<TGraph> LikelihoodFit::get_profile_likelihood_ratio_plot(const json &input)
 //************************************************************************
 {
     // --- Getting the minimum and maximum values for the profile likehood ratio plot ---
@@ -818,7 +827,9 @@ TGraph* LikelihoodFit::get_profile_likelihood_ratio_plot(const json &input)
 
     TGraph *prof_ratio = new TGraph(npoints,mu,lnL);
 
-    return prof_ratio;
+    auto prof_ratio_ptr = std::unique_ptr<TGraph>(static_cast<TGraph*>(prof_ratio->Clone()));
+
+    return prof_ratio_ptr;
 
 
 }
@@ -826,7 +837,7 @@ TGraph* LikelihoodFit::get_profile_likelihood_ratio_plot(const json &input)
 // --- This function styles the ratios ---
 
 //************************************************************************
-void LikelihoodFit::style_ratios(TGraph *plot, int color, const json &input)
+void LikelihoodFit::style_ratios(std::unique_ptr<TGraph> &plot, int color, const json &input)
 //************************************************************************
 {
     // --- Getting the X axis limits for the likelihood ratio ---
@@ -862,7 +873,7 @@ void LikelihoodFit::draw_sigma(double x, double y)
 // --- This function takes the likelihood plots and fits a quadratic function to calculate the errors ---
 
 //************************************************************************
-std::tuple<double,double,double> LikelihoodFit::quadratic_fit(TGraph *plot, const json &input)
+std::tuple<double,double,double> LikelihoodFit::quadratic_fit(const std::unique_ptr<TGraph> &plot, const json &input)
 //************************************************************************
 {
     // --- Getting the x values for the fit from the json file ---
@@ -915,12 +926,12 @@ std::tuple<double,double,double> LikelihoodFit::quadratic_fit(TGraph *plot, cons
 // --- This function draws the legend for the likelihood comparison plot ---
 
 //************************************************************************
-void LikelihoodFit::draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio)
+void LikelihoodFit::draw_likelihood_legend(const std::unique_ptr<TGraph> &ratio, const std::unique_ptr<TGraph> &profile_ratio)
 //************************************************************************
 {
    TLegend *leg = new TLegend(0.72,0.15,0.9,0.25);
-   leg->AddEntry(ratio,"#bf{Stat}.","l");
-   leg->AddEntry(profile_ratio,"#bf{Stat. #oplus Syst.}","l");
+   leg->AddEntry(ratio.get(),"#bf{Stat}.","l");
+   leg->AddEntry(profile_ratio.get(),"#bf{Stat. #oplus Syst.}","l");
    leg->SetBorderSize(0);
    leg->Draw();
 }
@@ -928,7 +939,7 @@ void LikelihoodFit::draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio)
 // --- This function draws the two ratios together ---
 
 //************************************************************************
-void LikelihoodFit::draw_ratios(TGraph *ratio, TGraph *profile_ratio,std::unique_ptr<TCanvas> &c, const json &input)
+void LikelihoodFit::draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<TGraph> &profile_ratio,std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
     // --- Showing the canvas ---

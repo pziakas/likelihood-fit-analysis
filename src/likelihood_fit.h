@@ -102,15 +102,15 @@ class LikelihoodFit
     void SetNpar(int npar);
     int GetNpar();
     static void SetInstance(LikelihoodFit &fit);
-    TGraph* get_likelihood_ratio_plot(LikelihoodFit &fit);
+    std::unique_ptr<TGraph> get_likelihood_ratio_plot(LikelihoodFit &fit);
     void AddToParameters(double par1, double par2, double par3, double par4, std::string par5);
-    TGraph* get_profile_likelihood_ratio_plot(const json &input);
+    std::unique_ptr<TGraph> get_profile_likelihood_ratio_plot(const json &input);
     TMinuit* SetBestFitValues();
-    void style_ratios(TGraph *plot, int color, const json &input);
+    void style_ratios(std::unique_ptr<TGraph> &plot, int color, const json &input);
     void draw_sigma(double x, double y);
-    std::tuple<double,double,double> quadratic_fit(TGraph *plot, const json &input);
-    void draw_likelihood_legend(TGraph *ratio, TGraph *profile_ratio);
-    void draw_ratios(TGraph *ratio, TGraph *profile_ratio,std::unique_ptr<TCanvas> &c, const json &input);
+    std::tuple<double,double,double> quadratic_fit(const std::unique_ptr<TGraph> &plot, const json &input);
+    void draw_likelihood_legend(const std::unique_ptr<TGraph> &ratio, const std::unique_ptr<TGraph> &profile_ratio);
+    void draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<TGraph> &profile_ratio,std::unique_ptr<TCanvas> &c, const json &input);
     void ShowVars(const json &input);
 
 };
