@@ -354,8 +354,8 @@ void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &inp
 
     // --- Clone the histograms for the ratio plot ---
 
-    TH1F *h_Data = dynamic_cast<TH1F*>(histos.at(0)->Clone("h_Data"));
-    TH1F *h_sum = dynamic_cast<TH1F*>(histos.at(1)->Clone("h_sum"));
+    TH1F *h_Data = static_cast<TH1F*>(histos.at(0)->Clone("h_Data"));
+    TH1F *h_sum = static_cast<TH1F*>(histos.at(1)->Clone("h_sum"));
 
     // --- Not taking again into account the second histo for the background sum ---
     // --- This is because it was already copied above ---
