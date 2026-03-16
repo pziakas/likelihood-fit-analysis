@@ -878,9 +878,9 @@ std::tuple<double,double,double> LikelihoodFit::quadratic_fit(const std::unique_
 
     // --- Fiting the likelihood function with a second order polynomial around the minimum ---
 
-    TF1 *f1=new TF1("f1","pol2(0)",fit_x1,fit_x2); 
+    auto f1 = std::make_unique<TF1>("f1","pol2(0)",fit_x1,fit_x2);
     f1->SetLineColor(kRed); 
-    plot->Fit(f1,"R+0Q");
+    plot->Fit(f1.get(),"R+0Q");
 
     // --- Retrieving the coefficients of the polynomial ---
     // --- The polynomial is defined as [0] + [1]*x + [2]*x*x
