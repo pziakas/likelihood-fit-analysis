@@ -633,7 +633,7 @@ void LikelihoodFit::LoadParameters(const json &input)
 // --- This function gets a TMinuit minimizer of npar parameters and returns a vector of the best fit values ---
 
 //************************************************************************
-std::vector<double> LikelihoodFit::get_best_fit_values(TMinuit *minimizer)
+std::vector<double> LikelihoodFit::get_best_fit_values(std::unique_ptr<TMinuit> &minimizer)
 //************************************************************************
 {
     std::vector<double> values;
@@ -677,7 +677,7 @@ std::unique_ptr<TGraph> LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &
 {
     // --- Getting the current minimizer for likelihood ratio plot ---
     
-    TMinuit *minimizer = fit.SetBestFitValues();
+    auto minimizer = fit.SetBestFitValues();
    
     // --- Scans parameter 0 ---
 
@@ -704,10 +704,10 @@ std::unique_ptr<TGraph> LikelihoodFit::get_likelihood_ratio_plot(LikelihoodFit &
 // --- This function sets the best fit values and returns the minimizer ---
 
 //************************************************************************
-TMinuit* LikelihoodFit::SetBestFitValues()
+std::unique_ptr<TMinuit> LikelihoodFit::SetBestFitValues()
 //************************************************************************
 {
-    TMinuit *min = new TMinuit(npar);
+    auto min = std::make_unique<TMinuit>(npar);
     
     best_fit = get_best_fit_values(min);
 
@@ -766,9 +766,7 @@ std::unique_ptr<TGraph> LikelihoodFit::get_profile_likelihood_ratio_plot(const j
     denominator[0] = best_fit.at(0);
     denominator[1] = best_fit.at(1);
 
-    // --- Defining a TMinuit object ---
-
-    TMinuit *minimizer = new TMinuit(npar);
+    auto minimizer = std::make_unique<TMinuit>(npar);
 
     // --- Setting the function to be minimized ---
     
@@ -825,12 +823,9 @@ std::unique_ptr<TGraph> LikelihoodFit::get_profile_likelihood_ratio_plot(const j
         lnL[i] = -2*lnL[i];
     }
 
-    TGraph *prof_ratio = new TGraph(npoints,mu,lnL);
-
-    auto prof_ratio_ptr = std::unique_ptr<TGraph>(static_cast<TGraph*>(prof_ratio->Clone()));
+    auto prof_ratio_ptr = std::make_unique<TGraph>(npoints,mu,lnL);
 
     return prof_ratio_ptr;
-
 
 }
 

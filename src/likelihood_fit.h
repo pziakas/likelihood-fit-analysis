@@ -98,14 +98,14 @@ class LikelihoodFit
     double log_likelihood(int bin, double param[], int flag);
     void LoadParameters(const json &input);
     static void fcn(int &npar, double *deriv, double &f, double *param, int flag);
-    std::vector<double> get_best_fit_values(TMinuit *minimizer);
+    std::vector<double> get_best_fit_values(std::unique_ptr<TMinuit> &minimizer);
     void SetNpar(int npar);
     int GetNpar();
     static void SetInstance(LikelihoodFit &fit);
     std::unique_ptr<TGraph> get_likelihood_ratio_plot(LikelihoodFit &fit);
     void AddToParameters(double par1, double par2, double par3, double par4, std::string par5);
     std::unique_ptr<TGraph> get_profile_likelihood_ratio_plot(const json &input);
-    TMinuit* SetBestFitValues();
+    std::unique_ptr<TMinuit> SetBestFitValues();
     void style_ratios(std::unique_ptr<TGraph> &plot, int color, const json &input);
     void draw_sigma(double x, double y);
     std::tuple<double,double,double> quadratic_fit(const std::unique_ptr<TGraph> &plot, const json &input);
