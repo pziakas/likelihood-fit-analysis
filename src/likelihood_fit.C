@@ -234,8 +234,8 @@ void LikelihoodFit::draw_logo(double x, double y1, double y2, double y3, const j
     TString region_logo(input[region]["region"].get<std::string>());
     
     TLatex *t = new TLatex(x,y1,"#it{ATLAS} #bf{work in progress}");
-    TLatex *t1=new TLatex(x,y2,"#bf{#sqrt{s}=13 TeV, #intLdt = 139 fb^{-1}}");
-    TLatex *t2=new TLatex(x,y3,region_logo);
+    TLatex *t1 = new TLatex(x,y2,"#bf{#sqrt{s}=13 TeV, #intLdt = 139 fb^{-1}}");
+    TLatex *t2 = new TLatex(x,y3,region_logo);
     
     t->SetTextSize(0.04);
     t1->SetTextSize(0.035);
@@ -512,9 +512,9 @@ double LikelihoodFit::log_likelihood(int bin, double param[], int flag)
     double val;
 
     // --- Defining the needed fit functions ---
-    
-    TF1 *poisson = new TF1("p","TMath::Poisson(x,[0])",0,1e5);
-    TF1 *gauss = new TF1("g","gaus(0)",-10,10);
+
+    auto poisson = std::make_unique<TF1>("p","TMath::Poisson(x,[0])",0,1e5);
+    auto gauss = std::make_unique<TF1>("g","gaus(0)",-10,10);
 
     double s = 0;
     double b = 0;
