@@ -416,7 +416,7 @@ std::vector <TString> LikelihoodFit::vecs_from_json_string(const json &input, co
 {
     std::vector <TString> vec;
 
-    if(!input.contains(name))
+    if(!input[region].contains(name))
     {
         throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " << region << "!");
     }
@@ -438,7 +438,7 @@ std::vector <int> LikelihoodFit::vecs_from_json_int(const json &input, const std
 {
     std::vector <int> vec;
 
-    if(!input.contains(name))
+    if(!input[region].contains(name))
     {
         throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " << region << "!");
     }
