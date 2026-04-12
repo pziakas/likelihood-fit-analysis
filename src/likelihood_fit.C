@@ -175,22 +175,16 @@ void LikelihoodFit::GetHistos(const json &input)
     {
         TString name = histo_name + histo_label;
         
-        // --- Getting the histogram from the file ---
-        
         TH1F *histo = dynamic_cast<TH1F*>(file->Get(name));
 
         if(!histo || histo->IsZombie())
         {
             throw std::runtime_error("Histogram" + name + "could not be successfully opened!");
         }
-
-        // --- Setting the name of the histogram ---
         
         histo->SetName(histo_name);
 
         std::cout << std::endl << "Histogram " << histo->GetName() << " opened successfully!" << std::endl;
-
-        // --- Filling the histogram vector ---
         
         histos.push_back(histo);
     }
@@ -202,8 +196,6 @@ void LikelihoodFit::GetHistos(const json &input)
 void LikelihoodFit::StyleHistos()
 //************************************************************************
 {
-    // --- Looping over all the histograms ---
-    
     for(int i = 0; i < histos.size(); i++)
     {
         TString name = histos.at(i)->GetName();
@@ -272,7 +264,6 @@ void LikelihoodFit::draw_legend()
 void LikelihoodFit::draw_line(int color, int line_width, double xmin, double ymin, double xmax, double ymax)
 //************************************************************************
 {
-	
 	TLine *l = new TLine(xmin,ymin,xmax,ymax);
     l->SetLineColor(color);
 	l->SetLineWidth(line_width);
@@ -286,17 +277,12 @@ void LikelihoodFit::draw_line(int color, int line_width, double xmin, double ymi
 void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
-    // --- Defining the stack ---
 
-     THStack *s = new THStack("stack",";; Counts");
-	
-	// --- Getting the stack limits from the json file ---
+    THStack *s = new THStack("stack",";; Counts");
 
 	double stack_max = input[region][var]["stack_upper_lim"].get<double>();
     double stack_min = input[region][var]["stack_lower_lim"].get<double>();
 
-
-	// --- Filling the stack ---
     // --- First histogram is data histosgram, will be plotted later ---
 
 	for(int i = 1; i < histos.size(); i++) s->Add(histos.at(i));
@@ -322,24 +308,18 @@ void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &inp
 
     gStyle->SetOptStat(0); 
 
-    // --- Draw the logo ---
-
     double logo_y1 = input[region][var]["atlas_logo_y1"].get<double>();
     double logo_y2 = input[region][var]["atlas_logo_y2"].get<double>();
     double logo_y3 = input[region][var]["atlas_logo_y3"].get<double>();
     double logo_x = input[region]["stack_logo_x"].get<double>();
 
     draw_logo(logo_x,logo_y1,logo_y2,logo_y3,input);
-
-    // --- Draw the legend ---
     
     draw_legend();
 
     // --- Draw data ---
 
     histos.at(0)->Draw("e1x0p same");
-
-    // --- Logarithmic scale ---
 
     pad1->SetLogy();
 
@@ -351,8 +331,6 @@ void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &inp
     pad2->SetBottomMargin(0.3);
     pad2->Draw();
     pad2->cd(); 
-
-    // --- Clone the histograms for the ratio plot ---
 
     TH1F *h_Data = static_cast<TH1F*>(histos.at(0)->Clone("h_Data"));
     TH1F *h_sum = static_cast<TH1F*>(histos.at(1)->Clone("h_sum"));
@@ -418,7 +396,7 @@ std::vector <TString> LikelihoodFit::vecs_from_json_string(const json &input, co
 
     if(!input[region].contains(name))
     {
-        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " << region << "!");
+        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " + region + "!");
     }
 
     for(const auto &elements : input[region][name])
@@ -440,7 +418,7 @@ std::vector <int> LikelihoodFit::vecs_from_json_int(const json &input, const std
 
     if(!input[region].contains(name))
     {
-        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " << region << "!");
+        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " + region + "!");
     }
 
     for(const auto &elements : input[region][name])
@@ -631,8 +609,6 @@ void LikelihoodFit::fcn(int &npar, double *deriv, double &f, double *param, int 
 void LikelihoodFit::LoadParameters(const json &input)
 //************************************************************************
 {
-    // --- Loading the vectors ---
-    
     par = {input[region]["par_guess"].get<double>()};
     stepSize = {input[region]["par_step"].get<double>()};
     minVal = {input[region]["par_min"].get<double>()};
@@ -651,8 +627,6 @@ std::vector<double> LikelihoodFit::get_best_fit_values(std::unique_ptr<TMinuit> 
     // --- Setting the minimization function ---
     
     minimizer->SetFCN(LikelihoodFit::fcn);
-
-    // --- Setting the parameters ---
 
     for(int i = 0; i < npar; i++) minimizer->DefineParameter(i,parName[i].c_str(),par[i],stepSize[i],minVal[i],maxVal[i]);
 
@@ -731,8 +705,6 @@ std::unique_ptr<TMinuit> LikelihoodFit::SetBestFitValues()
 void LikelihoodFit::AddToParameters(double par1, double par2, double par3, double par4, std::string par5)
 //************************************************************************
 {
-    // --- Adding parameters to the vectors ---
-    
     par.push_back(par1);
     stepSize.push_back(par2);
     minVal.push_back(par3);
@@ -750,13 +722,8 @@ std::unique_ptr<TGraph> LikelihoodFit::get_profile_likelihood_ratio_plot(const j
     
     double minm = input[region]["mu_min"].get<double>();
 	double maxm = input[region]["mu_max"].get<double>();
-
-    // --- 100 points will be used to draw the profile likelihood plot ---
     
     const int npoints = 100;
-
-    // --- 100 values will be used for the mu estimator ---
-    // --- So, of course there will be 100 values of the likelihood function ---
 
     double mu[npoints];
     double lnL[npoints];
@@ -788,8 +755,6 @@ std::unique_ptr<TGraph> LikelihoodFit::get_profile_likelihood_ratio_plot(const j
         
         mu[i]= minm+(((maxm-minm)/npoints)*i);
 
-        // --- Initiating the likelihood function value for every loop ---
-        
         lnL[i]=0;
 
         // --- Setting the value of the mu parameter ---
@@ -947,11 +912,7 @@ void LikelihoodFit::draw_likelihood_legend(const std::unique_ptr<TGraph> &ratio,
 void LikelihoodFit::draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<TGraph> &profile_ratio,std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
-    // --- Showing the canvas ---
-
     c->cd();
-
-    // --- Styling the ratios ---
 
     style_ratios(ratio,kBlue,input);
     
@@ -982,52 +943,132 @@ void LikelihoodFit::draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<
 
     std::cout << "----------------------------------------------------------------------" << std::endl;
 
-
-    // --- Drawing the likelihood ratio ---
-
     ratio->Draw("ac");
-
-    // --- Drawing the vertical lines to indicate x1 and x2 for the likelihood ratio ---
 
     draw_line(kBlue,2,std::get<0>(errors_r),0,std::get<0>(errors_r),1);
     draw_line(kBlue,2,std::get<1>(errors_r),0,std::get<1>(errors_r),1);
 
-    // --- Drawing the profile likelihood ratio ---
-
     profile_ratio->Draw("c");
-
-    // --- Drawing the vertical lines to indicate x1 and x2 for the profile likelihood ratio ---
 
     draw_line(kMagenta,2,std::get<0>(errors_pr),0,std::get<0>(errors_pr),1);
     draw_line(kMagenta,2,std::get<1>(errors_pr),0,std::get<1>(errors_pr),1);
 
-    // --- Getting the x value for the sigma logo ---
-
     double sigma_x = input[region]["sigma_x"].get<double>();
 
-    // --- Drawing the sigma logo ---
-
     draw_sigma(sigma_x,1.05);
-
-    // --- Getting the x limits for the line ---
 
     double line_x1 = input[region]["line_xmin"].get<double>();
     double line_x2 = input[region]["line_xmax"].get<double>();
 
-    // --- Draw the common line that intersects the plots at y=1 ---
-
     draw_line(15,2,line_x1,1,line_x2,1);
-
-    // --- Getting the x value for the atlas logo ---
 
     double ratio_logo_x = input[region]["ratio_logo_x"].get<double>();
 
-    // --- Draw the ATLAS logo ---
-
     draw_logo(ratio_logo_x,1.5,1.35,1.2,input);
-
-    // --- Draws the legend ---
 
     draw_likelihood_legend(ratio,profile_ratio);
 
+}
+
+// --- This function contains all the methods used to perfom the maximum likelihood fit ---
+
+//************************************************************************
+void LikelihoodFit::perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input)
+//************************************************************************
+{
+    c->SetCanvasSize(700, 500);
+	c->GetCanvasImp()->SetWindowSize(700, 500);
+
+    // --- Log Likelihood estimation ---
+
+    fit.SetFitFlag(0);
+
+    fit.LoadParameters(input);
+
+    fit.SetNpar(1);
+
+    LikelihoodFit::SetInstance(fit);
+
+    fit.SetBestFitValues();
+
+    // --- Log Likelihood Ratio estimation ---
+
+    fit.SetFitFlag(1);
+
+    // --- Getting the Log Likelihood Ratio ---
+
+    auto ratio = std::unique_ptr<TGraph>();
+
+    try
+    {
+       ratio = fit.get_likelihood_ratio_plot(fit);
+    } 
+    
+    catch(const std::exception& e)
+    {
+        std::cerr << "ERROR: " <<  e.what() << std::endl;
+        return;
+    }
+   
+    fit.SetNpar(2);
+
+    // --- Profile Likelihood Ratio estimation ---
+
+    fit.SetFitFlag(2);
+
+    // --- Adding the initial values for the second parameter ---
+
+    fit.AddToParameters(1.0005,0.1,0.9,1.1,"x");
+
+    fit.SetBestFitValues();
+
+    // --- Getting the Profile Likelihood Ratio ---
+
+    auto profile_ratio = fit.get_profile_likelihood_ratio_plot(input);
+
+	fit.draw_ratios(ratio,profile_ratio,c,input);
+
+    fit.print_image(c,"likelihood",input);
+}
+
+
+// --- This function is plotting and visualizing the distributions of the given variable ---
+
+//************************************************************************
+void LikelihoodFit::visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input)
+//************************************************************************
+{
+    fit.draw_ratio_plot(c,input);
+
+    fit.print_image(c,"distribution",input);
+}
+
+// --- This function will perform all the actions to open files and retrieve histograms ---
+
+//************************************************************************
+void LikelihoodFit::load_data(LikelihoodFit &fit, const json &input)
+//************************************************************************
+{
+    fit.ShowVars(input);
+
+    try
+    {
+        fit.SetVar(input);
+
+        fit.SetRegion(input);
+
+        fit.GetVectors(input);
+
+        fit.FileOpen(input);
+
+        fit.GetHistos(input);
+    }
+
+    catch(const std::exception& e)
+    {
+        std::cerr << "ERROR: " <<  e.what() << std::endl;
+        return;
+    }
+
+    fit.StyleHistos();
 }
