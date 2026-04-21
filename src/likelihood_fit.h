@@ -115,6 +115,7 @@ class LikelihoodFit
     void perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input);
     void visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input);
     void load_data(LikelihoodFit &fit, const json &input);
+    json LoadJSON();
 
 };
 

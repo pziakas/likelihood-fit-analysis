@@ -103,6 +103,22 @@ void LikelihoodFit::FileOpen(const json &input)
     std::cout << std::endl << "File " << file->GetName() << " opened successfully!" << std::endl;
 }
 
+// --- This is a function will load the JSON file ---
+
+//************************************************************************
+json LikelihoodFit::LoadJSON()
+//************************************************************************
+{
+    std::ifstream in_file("input.json");
+	
+	json input;
+
+	in_file >> input;
+
+    return input;
+
+}
+
 // --- This is a function to set the region ---
 
 //************************************************************************

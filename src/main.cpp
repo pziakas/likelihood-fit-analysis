@@ -41,13 +41,9 @@ int main(int argc, char **argv)
 {
 	auto c = std::make_unique<TCanvas>("c", "Canvas", 800, 800);
 
-	std::ifstream in_file("input.json");
-	
-	json input;
-
-	in_file >> input;
-
     LikelihoodFit fit;
+
+    json input = fit.LoadJSON();
 
     fit.load_data(fit,input);
 
