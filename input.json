@@ -13,7 +13,7 @@
 
 		"filename": "zz_cr_histos_", 
 
-		"histo_label": "ZZCR",
+		"histo_label": "_ZZCR",
 
 		"region": "#bf{ZZ Drell-Yan CR}",
 
@@ -80,7 +80,7 @@
 
 		},
 
-		"histo_names": ["data_","WZ_ew_total_","Fakes_","WZ_qcd_364253_","ttbarV+VVV_total_","ZZ_total_"],
+		"histo_names": ["data","WZ_ew_total","Fakes","WZ_qcd_364253","ttbarV+VVV_total","ZZ_total"],
 
 		"fill_colors": [0,391,629,40,609,407],
 
@@ -93,7 +93,7 @@
 
 		"filename": "wzqcd_cr_histos_",
 
-		"histo_label": "WZqcd_CR",
+		"histo_label": "_WZqcd_CR",
 
 		"region": "#bf{WZ-QCD Drell-Yan CR}",
 
@@ -159,7 +159,7 @@
 
 		},
 
-		"histo_names": ["data_","WZ_ew_total_","ttbarV+VVV_total_","ZZ_total_","Fakes_","WZ_qcd_364253_"],
+		"histo_names": ["data","WZ_ew_total","ttbarV+VVV_total","ZZ_total","Fakes","WZ_qcd_364253"],
 
 		"fill_colors": [0,391,609,407,629,40],
 
