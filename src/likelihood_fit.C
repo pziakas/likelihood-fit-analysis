@@ -198,9 +198,9 @@ void LikelihoodFit::GetHistos(const json &input)
             throw std::runtime_error("Histogram" + name + "could not be successfully opened!");
         }
         
-        histo->SetName(histo_name);
+        histo->SetName(name);
 
-        std::cout << std::endl << "Histogram " << histo->GetName() << " opened successfully!" << std::endl;
+        std::cout << std::endl << "Histogram " << histo->GetName() << " was successfully retrieved from file " << file->GetName() << "!" << std::endl;
         
         histos.push_back(histo);
     }
