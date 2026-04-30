@@ -78,22 +78,19 @@ LikelihoodFit::~LikelihoodFit()
     
     histos.clear();
 
-    file->Close();
-    delete file;
-
     std::cout << "You have deleted a LikelihoodFit object" << std::endl;
 }
 
 // --- This function is opening the file and checks if it has opened successfully ---
 
 //************************************************************************
-void LikelihoodFit::FileOpen(const json &input)
+std::unique_ptr<TFile> LikelihoodFit::FileOpen(const json &input)
 //************************************************************************
 {
     TString filename(input[region]["filename"].get<std::string>());
 	TString path(input["path"].get<std::string>());
-    
-    file = TFile::Open(path + filename + var + ".root","read");
+
+    auto file = std::make_unique<TFile>(path + filename + var + ".root","read");
 
     if(!file || file->IsZombie())
     {
@@ -101,6 +98,8 @@ void LikelihoodFit::FileOpen(const json &input)
     }
 
     std::cout << std::endl << "File " << file->GetName() << " opened successfully!" << std::endl;
+
+    return file;
 }
 
 // --- This is a function will load the JSON file ---
@@ -182,7 +181,7 @@ void LikelihoodFit::ShowVars(const json &input)
 // --- This is a function that gets all the histograms --
 
 //************************************************************************
-void LikelihoodFit::GetHistos(const json &input)
+void LikelihoodFit::GetHistos(const json &input, const std::unique_ptr<TFile> &file)
 //************************************************************************
 {
     TString histo_label(input[region]["histo_label"].get<std::string>());
@@ -197,12 +196,16 @@ void LikelihoodFit::GetHistos(const json &input)
         {
             throw std::runtime_error("Histogram" + name + "could not be successfully opened!");
         }
-        
-        histo->SetName(name);
 
-        std::cout << std::endl << "Histogram " << histo->GetName() << " was successfully retrieved from file " << file->GetName() << "!" << std::endl;
+        TH1F *h_clone = static_cast<TH1F*>(histo->Clone());
+
+        h_clone->SetDirectory(0);
         
-        histos.push_back(histo);
+        h_clone->SetName(histo_name);
+
+        std::cout << std::endl << "Histogram " << h_clone->GetName() << " was successfully retrieved from file " << file->GetName() << "!" << std::endl;
+        
+        histos.push_back(h_clone);
     }
 }
 
@@ -1075,9 +1078,9 @@ void LikelihoodFit::load_data(LikelihoodFit &fit, const json &input)
 
         fit.GetVectors(input);
 
-        fit.FileOpen(input);
+        auto file = fit.FileOpen(input);
 
-        fit.GetHistos(input);
+        fit.GetHistos(input,file);
     }
 
     catch(const std::exception& e)

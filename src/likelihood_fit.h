@@ -54,10 +54,6 @@ class LikelihoodFit
     TString var;
     TString region;
 
-    // --- File to be opened ---
-
-    TFile *file;
-
     // --- Defining some usefull integers ---
 
     int fit_flag;
@@ -80,11 +76,11 @@ class LikelihoodFit
 
     LikelihoodFit();
     ~LikelihoodFit();
-    void FileOpen(const json &input);
+    std::unique_ptr<TFile> FileOpen(const json &input);
     void SetRegion(const json &input);
     TString GetRegion();
     void SetVar(const json &input);
-    void GetHistos(const json &input);
+    void GetHistos(const json &input, const std::unique_ptr<TFile> &file);
     void StyleHistos();
     void draw_logo(double xmin, double xmax1, double xmax2, double xmax3, const json &input);
     void draw_legend();
