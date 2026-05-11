@@ -45,11 +45,20 @@ int main(int argc, char **argv)
 
     json input = fit.LoadJSON();
 
-    fit.load_data(fit,input);
+    try
+    {
+        fit.load_data(fit,input);
 
-    fit.visualize_data(fit,"distribution",c,input);
+        fit.visualize_data(fit,"distribution",c,input);
 
-    fit.perform_fit(fit,c,input);
+        fit.perform_fit(fit,c,input);
+    }   
+
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
     
     return EXIT_SUCCESS;
 }
