@@ -62,7 +62,7 @@ void LikelihoodFit::SetInstance(LikelihoodFit &fit)
 LikelihoodFit::LikelihoodFit()
 //************************************************************************
 {
-    std::cout << "You have created a LikelihoodFit object!" << std::endl << std::endl;
+    std::cout << "[INFO]: You have created a LikelihoodFit object!" << std::endl << std::endl;
 }
 
 // --- LikelihoodFit Destructor ---
@@ -78,7 +78,7 @@ LikelihoodFit::~LikelihoodFit()
     
     histos.clear();
 
-    std::cout << "You have deleted a LikelihoodFit object" << std::endl;
+    std::cout << "[INFO]: You have deleted a LikelihoodFit object" << std::endl;
 }
 
 // --- This function is opening the file and checks if it has opened successfully ---
@@ -94,10 +94,10 @@ std::unique_ptr<TFile> LikelihoodFit::FileOpen(const json &input)
 
     if(!file || file->IsZombie())
     {
-        throw std::runtime_error("The file could not be opened!");
+        throw std::runtime_error(std::string("[ERROR]: File ") + filename.Data() + " could not be opened!");
     }
 
-    std::cout << std::endl << "File " << file->GetName() << " opened successfully!" << std::endl;
+    std::cout << std::endl << "[INFO]: File " << filename.Data() << " opened successfully!" << std::endl;
 
     return file;
 }
@@ -128,7 +128,7 @@ void LikelihoodFit::SetRegion(const json &input)
 
     if(region != "ZZ" && region != "WZ_qcd")
     {
-        throw std::runtime_error("You have entered an invalid region! Choose between ZZ and WZ_qcd!");
+        throw std::runtime_error("[ERROR]: You have entered an invalid region! Choose between ZZ and WZ_qcd!");
     }
 
     this->region = region;
@@ -153,10 +153,10 @@ void LikelihoodFit::SetVar(const json &input)
 
     if(var != "mwz" && var != "sum3pt" && var != "mtwz")
     {
-        throw std::runtime_error("You have entered an invalid variable! Choose between mwz, sum3pt and mtwz!");
+        throw std::runtime_error("[ERROR]: You have entered an invalid variable! Choose between mwz, sum3pt and mtwz!");
     }
 
-    std::cout << std::endl << "Variable that will be used: " << var << std::endl;
+    std::cout << std::endl << "[INFO]: Variable that will be used: " << var << std::endl;
 
    this->var = var;
 }
@@ -169,7 +169,7 @@ void LikelihoodFit::ShowVars(const json &input)
 {
     std::vector<std::string> vars = input["variables"].get<std::vector<std::string>>();
     
-    std::cout << "The available variables for the fit are the following: " << std::endl;
+    std::cout << "[INFO]: The available variables for the fit are the following: " << std::endl;
 
     std::cout << std::endl << "####################" << std::endl;
 
@@ -185,6 +185,8 @@ void LikelihoodFit::GetHistos(const json &input, const std::unique_ptr<TFile> &f
 //************************************************************************
 {
     TString histo_label(input[region]["histo_label"].get<std::string>());
+
+    TString filename = file->GetName();
     
     for(auto &histo_name : histo_names)
     {
@@ -194,7 +196,7 @@ void LikelihoodFit::GetHistos(const json &input, const std::unique_ptr<TFile> &f
 
         if(!histo || histo->IsZombie())
         {
-            throw std::runtime_error("Histogram" + name + "could not be successfully opened!");
+            throw std::runtime_error("[ERROR]: Histogram" + name + "could not be successfully opened from file " + file->GetName() + "!");
         }
 
         TH1F *h_clone = static_cast<TH1F*>(histo->Clone());
@@ -203,7 +205,7 @@ void LikelihoodFit::GetHistos(const json &input, const std::unique_ptr<TFile> &f
         
         h_clone->SetName(histo_name);
 
-        std::cout << std::endl << "Histogram " << h_clone->GetName() << " was successfully retrieved from file " << file->GetName() << "!" << std::endl;
+        std::cout << std::endl << "[INFO]: Histogram " << h_clone->GetName() << " was successfully retrieved from file " << filename.Data() << "!" << std::endl;
         
         histos.push_back(h_clone);
     }
@@ -215,6 +217,11 @@ void LikelihoodFit::GetHistos(const json &input, const std::unique_ptr<TFile> &f
 void LikelihoodFit::StyleHistos()
 //************************************************************************
 {
+    if(histos.size() != fill_color.size())
+    {
+        throw std::runtime_error("[ERROR]: Each histogram is supposed to have a color! Check the input file!");
+    }
+    
     for(int i = 0; i < histos.size(); i++)
     {
         TString name = histos.at(i)->GetName();
@@ -227,8 +234,6 @@ void LikelihoodFit::StyleHistos()
             histos.at(i)->SetMarkerColor(kBlack);
             histos.at(i)->SetLineColor(kBlack);
         }
-
-        // --- All the predefined vectors have the same size ---
 
         histos.at(i)->SetFillColor(fill_color.at(i));
      
@@ -265,7 +270,10 @@ void LikelihoodFit::draw_legend()
 {
 	TLegend *leg = new TLegend(0.6,0.55,0.85,0.85); 
 	
-    // --- The two vectors have the same size ---   
+    if(histos.size() != leg_names.size())
+    {
+        throw std::runtime_error("[ERROR]: Each histogram is supposed to have a legend name! Check the input file!");
+    }  
 
     for(int i = 0; i < histos.size(); i++)
     {
@@ -302,7 +310,7 @@ void LikelihoodFit::draw_ratio_plot(std::unique_ptr<TCanvas> &c, const json &inp
 	double stack_max = input[region][var]["stack_upper_lim"].get<double>();
     double stack_min = input[region][var]["stack_lower_lim"].get<double>();
 
-    // --- First histogram is data histosgram, will be plotted later ---
+    // --- First histogram is data histogram, will be plotted later ---
 
 	for(int i = 1; i < histos.size(); i++) s->Add(histos.at(i));
 
@@ -415,7 +423,7 @@ std::vector <TString> LikelihoodFit::vecs_from_json_string(const json &input, co
 
     if(!input[region].contains(name))
     {
-        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " + region + "!");
+        throw std::runtime_error("[ERROR]: The key " + name + " does not exist in the JSON file for region " + region + "!");
     }
 
     for(const auto &elements : input[region][name])
@@ -437,7 +445,7 @@ std::vector <int> LikelihoodFit::vecs_from_json_int(const json &input, const std
 
     if(!input[region].contains(name))
     {
-        throw std::runtime_error("The key " + name + " does not exist in the JSON file for region " + region + "!");
+        throw std::runtime_error("[ERROR]: The key " + name + " does not exist in the JSON file for region " + region + "!");
     }
 
     for(const auto &elements : input[region][name])
@@ -470,8 +478,8 @@ void LikelihoodFit::print_image(std::unique_ptr<TCanvas> &c, const TString &mode
 
     if(ans != "y" && ans != "n")
     {
-       std::cerr << "WARNING: The option you have entered for image printing is invalid! Choose between y and n!" << std::endl;
-       std::cerr << "The image will not be printed!" << std::endl;
+       std::cerr << std::endl << "[WARNING]: The option you have entered for image printing is invalid! Choose between y and n!" << std::endl;
+       std::cerr <<  "[WARNING]: The image will not be printed!" << std::endl;
     }
 
     if(ans == "y")
@@ -1014,20 +1022,9 @@ void LikelihoodFit::perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, 
 
     fit.SetFitFlag(1);
 
-    // --- Getting the Log Likelihood Ratio ---
-
     auto ratio = std::unique_ptr<TGraph>();
-
-    try
-    {
-       ratio = fit.get_likelihood_ratio_plot(fit);
-    } 
     
-    catch(const std::exception& e)
-    {
-        std::cerr << "ERROR: " <<  e.what() << std::endl;
-        return;
-    }
+    ratio = fit.get_likelihood_ratio_plot(fit);
    
     fit.SetNpar(2);
 
@@ -1035,19 +1032,16 @@ void LikelihoodFit::perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, 
 
     fit.SetFitFlag(2);
 
-    // --- Adding the initial values for the second parameter ---
-
     fit.AddToParameters(1.0005,0.1,0.9,1.1,"x");
 
     fit.SetBestFitValues();
-
-    // --- Getting the Profile Likelihood Ratio ---
 
     auto profile_ratio = fit.get_profile_likelihood_ratio_plot(input);
 
 	fit.draw_ratios(ratio,profile_ratio,c,input);
 
     fit.print_image(c,"likelihood",input);
+
 }
 
 
@@ -1060,6 +1054,7 @@ void LikelihoodFit::visualize_data(LikelihoodFit &fit,const TString &mode,std::u
     fit.draw_ratio_plot(c,input);
 
     fit.print_image(c,"distribution",input);
+    
 }
 
 // --- This function will perform all the actions to open files and retrieve histograms ---
@@ -1070,24 +1065,15 @@ void LikelihoodFit::load_data(LikelihoodFit &fit, const json &input)
 {
     fit.ShowVars(input);
 
-    try
-    {
-        fit.SetVar(input);
+    fit.SetVar(input);
 
-        fit.SetRegion(input);
+    fit.SetRegion(input);
 
-        fit.GetVectors(input);
+    fit.GetVectors(input);
 
-        auto file = fit.FileOpen(input);
+    auto file = fit.FileOpen(input);
 
-        fit.GetHistos(input,file);
-    }
-
-    catch(const std::exception& e)
-    {
-        std::cerr << "ERROR: " <<  e.what() << std::endl;
-        return;
-    }
+    fit.GetHistos(input,file);
 
     fit.StyleHistos();
 }
