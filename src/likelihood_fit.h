@@ -108,13 +108,14 @@ class LikelihoodFit
     void draw_likelihood_legend(const std::unique_ptr<TGraph> &ratio, const std::unique_ptr<TGraph> &profile_ratio);
     void draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<TGraph> &profile_ratio,std::unique_ptr<TCanvas> &c, const json &input);
     void ShowVars(const json &input);
-    void perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input);
-    void visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input);
-    void load_data(LikelihoodFit &fit, const json &input);
     json LoadJSON();
 
 };
 
+
+void perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input);
+void visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input);
+void load_data(LikelihoodFit &fit, const json &input);
 
 
 #endif

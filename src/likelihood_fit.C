@@ -963,7 +963,7 @@ void LikelihoodFit::draw_ratios(std::unique_ptr<TGraph> &ratio, std::unique_ptr<
 // --- This function contains all the methods used to perfom the maximum likelihood fit ---
 
 //************************************************************************
-void LikelihoodFit::perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input)
+void perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
     c->SetCanvasSize(700, 500);
@@ -1011,7 +1011,7 @@ void LikelihoodFit::perform_fit(LikelihoodFit &fit,std::unique_ptr<TCanvas> &c, 
 // --- This function is plotting and visualizing the distributions of the given variable ---
 
 //************************************************************************
-void LikelihoodFit::visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input)
+void visualize_data(LikelihoodFit &fit,const TString &mode,std::unique_ptr<TCanvas> &c, const json &input)
 //************************************************************************
 {
     fit.draw_ratio_plot(c,input);
@@ -1023,7 +1023,7 @@ void LikelihoodFit::visualize_data(LikelihoodFit &fit,const TString &mode,std::u
 // --- This function will perform all the actions to open files and retrieve histograms ---
 
 //************************************************************************
-void LikelihoodFit::load_data(LikelihoodFit &fit, const json &input)
+void load_data(LikelihoodFit &fit, const json &input)
 //************************************************************************
 {
     fit.ShowVars(input);

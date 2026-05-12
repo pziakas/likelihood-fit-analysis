@@ -10,11 +10,11 @@ int main(int argc, char **argv)
 
     try
     {
-        fit.load_data(fit,input);
+        load_data(fit,input);
 
-        fit.visualize_data(fit,"distribution",c,input);
+        visualize_data(fit,"distribution",c,input);
 
-        fit.perform_fit(fit,c,input);
+        perform_fit(fit,c,input);
     }   
 
     catch(const std::exception& e)
